@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue计数器应用 - 模块1实践项目</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .counter-app {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        .title {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            font-weight: bold;
+        }
+        
+        .counter-display {
+            font-size: 4em;
+            font-weight: bold;
+            color: #667eea;
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9ff;
+            border-radius: 15px;
+            border: 3px solid #667eea;
+        }
+        
+        .controls {
+            margin: 30px 0;
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            margin: 0 10px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        
+        .btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn.danger {
+            background: #e74c3c;
+        }
+        
+        .btn.danger:hover {
+            background: #c0392b;
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+        }
+        
+        .step-control {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9ff;
+            border-radius: 10px;
+        }
+        
+        .step-control label {
+            font-weight: bold;
+            color: #333;
+            margin-right: 10px;
+        }
+        
+        .step-input {
+            padding: 8px 12px;
+            border: 2px solid #667eea;
+            border-radius: 5px;
+            font-size: 1em;
+            width: 80px;
+            text-align: center;
+        }
+        
+        .history {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9ff;
+            border-radius: 10px;
+            text-align: left;
+        }
+        
+        .history h3 {
+            color: #333;
+            margin-top: 0;
+            text-align: center;
+        }
+        
+        .history-item {
+            padding: 8px 12px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+            font-family: monospace;
+        }
+        
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        
+        .status.positive {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.negative {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.zero {
+            background: #e2e3e5;
+            color: #383d41;
+            border: 1px solid #d6d8db;
+        }
+    </style>
+</head>
+<body>
+    <div id="counter-app" class="counter-app">
+        <h1 class="title">🔢 Vue计数器应用</h1>
+        
+        <!-- 计数器显示 -->
+        <div class="counter-display">
+            {{ count }}
+        </div>
+        
+        <!-- 状态显示 -->
+        <div class="status" :class="statusClass">
+            {{ statusMessage }}
+        </div>
+        
+        <!-- 主要控制按钮 -->
+        <div class="controls">
+            <button class="btn" @click="decrease">➖ 减少</button>
+            <button class="btn" @click="increase">➕ 增加</button>
+            <button class="btn danger" @click="reset">🔄 重置</button>
+        </div>
+        
+        <!-- 步长控制 -->
+        <div class="step-control">
+            <label for="step">步长设置：</label>
+            <input 
+                id="step" 
+                type="number" 
+                v-model.number="step" 
+                class="step-input" 
+                min="1" 
+                max="100"
+            >
+        </div>
+        
+        <!-- 快捷操作 -->
+        <div class="controls">
+            <button class="btn" @click="addTen">+10</button>
+            <button class="btn" @click="subtractTen">-10</button>
+            <button class="btn" @click="double">×2</button>
+            <button class="btn" @click="half">÷2</button>
+        </div>
+        
+        <!-- 操作历史 -->
+        <div class="history" v-if="history.length > 0">
+            <h3>📋 操作历史</h3>
+            <div class="history-item" v-for="(item, index) in recentHistory" :key="index">
+                {{ item }}
+            </div>
+            <button class="btn" @click="clearHistory" style="margin-top: 10px;">清空历史</button>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        
+        createApp({
+            data() {
+                return {
+                    count: 0,
+                    step: 1,
+                    history: [],
+                    startTime: new Date()
+                }
+            },
+            computed: {
+                // 计算状态类名
+                statusClass() {
+                    if (this.count > 0) return 'positive';
+                    if (this.count < 0) return 'negative';
+                    return 'zero';
+                },
+                // 计算状态消息
+                statusMessage() {
+                    if (this.count > 0) {
+                        return `当前数值为正数：+${this.count}`;
+                    } else if (this.count < 0) {
+                        return `当前数值为负数：${this.count}`;
+                    } else {
+                        return '当前数值为零';
+                    }
+                },
+                // 最近的历史记录（最多显示5条）
+                recentHistory() {
+                    return this.history.slice(-5).reverse();
+                }
+            },
+            methods: {
+                // 增加计数
+                increase() {
+                    const oldValue = this.count;
+                    this.count += this.step;
+                    this.addToHistory(`增加 ${this.step}：${oldValue} → ${this.count}`);
+                },
+                // 减少计数
+                decrease() {
+                    const oldValue = this.count;
+                    this.count -= this.step;
+                    this.addToHistory(`减少 ${this.step}：${oldValue} → ${this.count}`);
+                },
+                // 重置计数
+                reset() {
+                    const oldValue = this.count;
+                    this.count = 0;
+                    this.addToHistory(`重置：${oldValue} → 0`);
+                },
+                // 加10
+                addTen() {
+                    const oldValue = this.count;
+                    this.count += 10;
+                    this.addToHistory(`快速增加10：${oldValue} → ${this.count}`);
+                },
+                // 减10
+                subtractTen() {
+                    const oldValue = this.count;
+                    this.count -= 10;
+                    this.addToHistory(`快速减少10：${oldValue} → ${this.count}`);
+                },
+                // 翻倍
+                double() {
+                    const oldValue = this.count;
+                    this.count *= 2;
+                    this.addToHistory(`翻倍：${oldValue} → ${this.count}`);
+                },
+                // 减半
+                half() {
+                    const oldValue = this.count;
+                    this.count = Math.floor(this.count / 2);
+                    this.addToHistory(`减半：${oldValue} → ${this.count}`);
+                },
+                // 添加到历史记录
+                addToHistory(operation) {
+                    const timestamp = new Date().toLocaleTimeString();
+                    this.history.push(`[${timestamp}] ${operation}`);
+                },
+                // 清空历史记录
+                clearHistory() {
+                    this.history = [];
+                    console.log('历史记录已清空');
+                }
+            },
+            // 生命周期钩子演示
+            beforeCreate() {
+                console.log('🔄 beforeCreate: 组件实例初始化之前');
+            },
+            created() {
+                console.log('✅ created: 组件实例创建完成');
+                console.log('📊 初始数据:', this.$data);
+            },
+            beforeMount() {
+                console.log('🔧 beforeMount: 组件挂载到DOM之前');
+            },
+            mounted() {
+                console.log('🎉 mounted: 组件已挂载到DOM');
+                console.log('⏰ 应用启动时间:', this.startTime.toLocaleString());
+                this.addToHistory('应用启动');
+            },
+            beforeUpdate() {
+                console.log('🔄 beforeUpdate: 数据更新，DOM重新渲染之前');
+            },
+            updated() {
+                console.log('✅ updated: DOM重新渲染完成');
+            },
+            beforeUnmount() {
+                console.log('🔄 beforeUnmount: 组件卸载之前');
+            },
+            unmounted() {
+                console.log('❌ unmounted: 组件已卸载');
+            }
+        }).mount('#counter-app');
+    </script>
+</body>
+</html>

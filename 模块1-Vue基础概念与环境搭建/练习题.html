@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模块1练习题 - Vue基础语法</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .exercise {
+            background: white;
+            margin: 20px 0;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .exercise h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        .task {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border-left: 4px solid #3498db;
+        }
+        
+        .result {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border: 1px solid #27ae60;
+        }
+        
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        
+        .btn:hover {
+            background: #2980b9;
+        }
+        
+        .input-field {
+            padding: 8px 12px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            margin: 5px;
+            font-size: 14px;
+        }
+        
+        .highlight {
+            background: #f39c12;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        
+        .error {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        
+        .success {
+            color: #27ae60;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎯 模块1练习题 - Vue.js基础语法</h1>
+    <p>完成以下练习来巩固Vue.js基础知识。每个练习都有具体的任务要求，请仔细阅读并实现。</p>
+
+    <!-- 练习1：基础插值和数据绑定 -->
+    <div class="exercise">
+        <h3>练习1：基础插值和数据绑定</h3>
+        <div class="task">
+            <strong>任务：</strong>创建一个个人信息展示卡片，包含姓名、年龄、职业，并能够动态修改这些信息。
+        </div>
+        
+        <div id="exercise1">
+            <div class="result">
+                <h4>个人信息卡片</h4>
+                <p><strong>姓名：</strong>{{ name }}</p>
+                <p><strong>年龄：</strong>{{ age }}岁</p>
+                <p><strong>职业：</strong>{{ job }}</p>
+                <p><strong>自我介绍：</strong>{{ introduction }}</p>
+            </div>
+            
+            <div>
+                <h4>修改信息：</h4>
+                <input v-model="name" placeholder="输入姓名" class="input-field">
+                <input v-model.number="age" type="number" placeholder="输入年龄" class="input-field">
+                <input v-model="job" placeholder="输入职业" class="input-field">
+                <br>
+                <textarea v-model="introduction" placeholder="输入自我介绍" class="input-field" style="width: 300px; height: 60px;"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- 练习2：事件处理和方法 -->
+    <div class="exercise">
+        <h3>练习2：事件处理和方法</h3>
+        <div class="task">
+            <strong>任务：</strong>创建一个简单的计算器，能够进行加减乘除运算，并显示计算历史。
+        </div>
+        
+        <div id="exercise2">
+            <div class="result">
+                <h4>简单计算器</h4>
+                <p><strong>当前结果：</strong><span class="highlight">{{ result }}</span></p>
+                <p><strong>计算表达式：</strong>{{ expression }}</p>
+            </div>
+            
+            <div>
+                <input v-model.number="num1" type="number" placeholder="第一个数" class="input-field">
+                <select v-model="operator" class="input-field">
+                    <option value="+">+</option>
+                    <option value="-">-</option>
+                    <option value="*">×</option>
+                    <option value="/">÷</option>
+                </select>
+                <input v-model.number="num2" type="number" placeholder="第二个数" class="input-field">
+                <button @click="calculate" class="btn">计算</button>
+                <button @click="clear" class="btn">清空</button>
+            </div>
+            
+            <div v-if="history.length > 0">
+                <h4>计算历史：</h4>
+                <ul>
+                    <li v-for="(item, index) in history" :key="index">{{ item }}</li>
+                </ul>
+                <button @click="clearHistory" class="btn">清空历史</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 练习3：条件渲染 -->
+    <div class="exercise">
+        <h3>练习3：条件渲染</h3>
+        <div class="task">
+            <strong>任务：</strong>创建一个用户登录状态管理器，根据登录状态显示不同的内容。
+        </div>
+        
+        <div id="exercise3">
+            <div class="result">
+                <div v-if="isLoggedIn">
+                    <h4 class="success">✅ 欢迎回来，{{ username }}！</h4>
+                    <p>您的权限级别：<span class="highlight">{{ userRole }}</span></p>
+                    <p>上次登录时间：{{ lastLoginTime }}</p>
+                    <button @click="logout" class="btn">退出登录</button>
+                </div>
+                
+                <div v-else>
+                    <h4 class="error">❌ 您尚未登录</h4>
+                    <p>请输入用户名和密码登录：</p>
+                    <input v-model="loginUsername" placeholder="用户名" class="input-field">
+                    <input v-model="loginPassword" type="password" placeholder="密码" class="input-field">
+                    <br>
+                    <button @click="login" class="btn">登录</button>
+                </div>
+            </div>
+            
+            <div>
+                <h4>登录状态：</h4>
+                <p :class="isLoggedIn ? 'success' : 'error'">
+                    {{ isLoggedIn ? '已登录' : '未登录' }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 练习4：列表渲染 -->
+    <div class="exercise">
+        <h3>练习4：列表渲染</h3>
+        <div class="task">
+            <strong>任务：</strong>创建一个待办事项列表，能够添加、删除、标记完成任务。
+        </div>
+        
+        <div id="exercise4">
+            <div>
+                <h4>添加新任务：</h4>
+                <input v-model="newTask" @keyup.enter="addTask" placeholder="输入新任务" class="input-field">
+                <button @click="addTask" class="btn">添加任务</button>
+            </div>
+            
+            <div class="result">
+                <h4>待办事项列表（共{{ todos.length }}项）</h4>
+                <div v-if="todos.length === 0">
+                    <p class="error">暂无任务，请添加新任务。</p>
+                </div>
+                
+                <ul v-else>
+                    <li v-for="(todo, index) in todos" :key="todo.id" 
+                        :style="{ textDecoration: todo.completed ? 'line-through' : 'none', 
+                                  color: todo.completed ? '#7f8c8d' : '#2c3e50' }">
+                        <input type="checkbox" v-model="todo.completed">
+                        {{ todo.text }}
+                        <span class="highlight" v-if="todo.completed">已完成</span>
+                        <button @click="removeTask(index)" class="btn" style="background: #e74c3c; margin-left: 10px;">删除</button>
+                    </li>
+                </ul>
+                
+                <div v-if="todos.length > 0">
+                    <p><strong>完成进度：</strong>{{ completedCount }}/{{ todos.length }} ({{ completionPercentage }}%)</p>
+                    <button @click="clearCompleted" class="btn">清除已完成</button>
+                    <button @click="clearAll" class="btn" style="background: #e74c3c;">清空所有</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 练习5：生命周期钩子 -->
+    <div class="exercise">
+        <h3>练习5：生命周期钩子演示</h3>
+        <div class="task">
+            <strong>任务：</strong>观察Vue组件的生命周期，在控制台查看各个阶段的执行情况。
+        </div>
+        
+        <div id="exercise5">
+            <div class="result">
+                <h4>生命周期演示</h4>
+                <p><strong>组件创建时间：</strong>{{ createTime }}</p>
+                <p><strong>组件挂载时间：</strong>{{ mountTime }}</p>
+                <p><strong>数据更新次数：</strong>{{ updateCount }}</p>
+                <p><strong>当前时间：</strong>{{ currentTime }}</p>
+            </div>
+            
+            <div>
+                <button @click="updateTime" class="btn">更新时间</button>
+                <button @click="triggerUpdate" class="btn">触发更新</button>
+                <p class="task">💡 打开浏览器控制台查看生命周期钩子的执行顺序</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        
+        // 练习1：基础插值和数据绑定
+        createApp({
+            data() {
+                return {
+                    name: '张三',
+                    age: 25,
+                    job: 'Web开发工程师',
+                    introduction: '热爱编程，专注于前端技术的学习和实践。'
+                }
+            }
+        }).mount('#exercise1');
+        
+        // 练习2：事件处理和方法
+        createApp({
+            data() {
+                return {
+                    num1: 0,
+                    num2: 0,
+                    operator: '+',
+                    result: 0,
+                    expression: '',
+                    history: []
+                }
+            },
+            methods: {
+                calculate() {
+                    let calcResult;
+                    switch(this.operator) {
+                        case '+':
+                            calcResult = this.num1 + this.num2;
+                            break;
+                        case '-':
+                            calcResult = this.num1 - this.num2;
+                            break;
+                        case '*':
+                            calcResult = this.num1 * this.num2;
+                            break;
+                        case '/':
+                            calcResult = this.num2 !== 0 ? this.num1 / this.num2 : '错误：除数不能为0';
+                            break;
+                    }
+                    
+                    this.result = calcResult;
+                    this.expression = `${this.num1} ${this.operator} ${this.num2} = ${calcResult}`;
+                    this.history.push(this.expression);
+                },
+                clear() {
+                    this.num1 = 0;
+                    this.num2 = 0;
+                    this.result = 0;
+                    this.expression = '';
+                },
+                clearHistory() {
+                    this.history = [];
+                }
+            }
+        }).mount('#exercise2');
+        
+        // 练习3：条件渲染
+        createApp({
+            data() {
+                return {
+                    isLoggedIn: false,
+                    username: '',
+                    userRole: '',
+                    lastLoginTime: '',
+                    loginUsername: '',
+                    loginPassword: ''
+                }
+            },
+            methods: {
+                login() {
+                    if (this.loginUsername && this.loginPassword) {
+                        this.isLoggedIn = true;
+                        this.username = this.loginUsername;
+                        this.userRole = this.loginUsername === 'admin' ? '管理员' : '普通用户';
+                        this.lastLoginTime = new Date().toLocaleString();
+                        this.loginUsername = '';
+                        this.loginPassword = '';
+                    } else {
+                        alert('请输入用户名和密码！');
+                    }
+                },
+                logout() {
+                    this.isLoggedIn = false;
+                    this.username = '';
+                    this.userRole = '';
+                    this.lastLoginTime = '';
+                }
+            }
+        }).mount('#exercise3');
+        
+        // 练习4：列表渲染
+        createApp({
+            data() {
+                return {
+                    newTask: '',
+                    todos: [
+                        { id: 1, text: '学习Vue.js基础', completed: false },
+                        { id: 2, text: '完成练习题', completed: false },
+                        { id: 3, text: '阅读官方文档', completed: true }
+                    ],
+                    nextId: 4
+                }
+            },
+            computed: {
+                completedCount() {
+                    return this.todos.filter(todo => todo.completed).length;
+                },
+                completionPercentage() {
+                    return this.todos.length > 0 ? Math.round((this.completedCount / this.todos.length) * 100) : 0;
+                }
+            },
+            methods: {
+                addTask() {
+                    if (this.newTask.trim()) {
+                        this.todos.push({
+                            id: this.nextId++,
+                            text: this.newTask.trim(),
+                            completed: false
+                        });
+                        this.newTask = '';
+                    }
+                },
+                removeTask(index) {
+                    this.todos.splice(index, 1);
+                },
+                clearCompleted() {
+                    this.todos = this.todos.filter(todo => !todo.completed);
+                },
+                clearAll() {
+                    this.todos = [];
+                }
+            }
+        }).mount('#exercise4');
+        
+        // 练习5：生命周期钩子演示
+        createApp({
+            data() {
+                return {
+                    createTime: '',
+                    mountTime: '',
+                    currentTime: '',
+                    updateCount: 0
+                }
+            },
+            methods: {
+                updateTime() {
+                    this.currentTime = new Date().toLocaleString();
+                },
+                triggerUpdate() {
+                    this.updateCount++;
+                }
+            },
+            beforeCreate() {
+                console.log('🔄 [练习5] beforeCreate: 实例初始化之前');
+            },
+            created() {
+                console.log('✅ [练习5] created: 实例创建完成');
+                this.createTime = new Date().toLocaleString();
+                this.currentTime = this.createTime;
+            },
+            beforeMount() {
+                console.log('🔧 [练习5] beforeMount: 挂载之前');
+            },
+            mounted() {
+                console.log('🎉 [练习5] mounted: 挂载完成');
+                this.mountTime = new Date().toLocaleString();
+            },
+            beforeUpdate() {
+                console.log('🔄 [练习5] beforeUpdate: 更新之前');
+            },
+            updated() {
+                console.log('✅ [练习5] updated: 更新完成');
+            }
+        }).mount('#exercise5');
+    </script>
+</body>
+</html>

@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue Todo List - 模块2实践项目</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .todo-app {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .input-section {
+            padding: 30px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .input-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .task-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .task-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .add-btn {
+            padding: 15px 30px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .add-btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .add-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .priority-select {
+            padding: 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 16px;
+            background: white;
+        }
+        
+        .controls {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .filter-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .stats {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .stat-item {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .stat-number {
+            color: #667eea;
+            font-size: 1.2em;
+        }
+        
+        .todo-list {
+            padding: 0 30px 30px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        
+        .empty-state .icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        .todo-item {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border-left: 5px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .todo-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+        
+        .todo-item.completed {
+            opacity: 0.7;
+            background: #e8f5e8;
+            border-left-color: #28a745;
+        }
+        
+        .todo-item.high-priority {
+            border-left-color: #dc3545;
+        }
+        
+        .todo-item.medium-priority {
+            border-left-color: #ffc107;
+        }
+        
+        .todo-item.low-priority {
+            border-left-color: #28a745;
+        }
+        
+        .todo-checkbox {
+            width: 20px;
+            height: 20px;
+            margin-right: 15px;
+            cursor: pointer;
+        }
+        
+        .todo-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .todo-text {
+            font-size: 16px;
+            line-height: 1.5;
+            transition: all 0.3s ease;
+        }
+        
+        .todo-text.completed {
+            text-decoration: line-through;
+            color: #666;
+        }
+        
+        .todo-text.editing {
+            display: none;
+        }
+        
+        .todo-edit {
+            display: none;
+            padding: 8px 12px;
+            border: 2px solid #667eea;
+            border-radius: 5px;
+            font-size: 16px;
+            width: 100%;
+        }
+        
+        .todo-edit.active {
+            display: block;
+        }
+        
+        .todo-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .priority-badge {
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 10px;
+            text-transform: uppercase;
+        }
+        
+        .priority-high {
+            background: #ffe6e6;
+            color: #dc3545;
+        }
+        
+        .priority-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .priority-low {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .todo-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .action-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .edit-btn {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .edit-btn:hover {
+            background: #138496;
+        }
+        
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .delete-btn:hover {
+            background: #c82333;
+        }
+        
+        .bulk-actions {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .bulk-btn {
+            padding: 10px 20px;
+            border: 2px solid #6c757d;
+            background: white;
+            color: #6c757d;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .bulk-btn:hover {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .search-container {
+            margin-bottom: 20px;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .progress-bar {
+            margin-top: 15px;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-buttons {
+                justify-content: center;
+            }
+            
+            .stats {
+                justify-content: center;
+            }
+            
+            .bulk-actions {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="todo-app" class="todo-app">
+        <!-- 头部 -->
+        <div class="header">
+            <h1>📝 Vue Todo List</h1>
+            <p>使用Vue.js数据绑定与指令系统构建的任务管理应用</p>
+        </div>
+        
+        <!-- 输入区域 -->
+        <div class="input-section">
+            <div class="input-container">
+                <input 
+                    v-model="newTask.text"
+                    @keyup.enter="addTask"
+                    class="task-input"
+                    placeholder="输入新任务..."
+                    :disabled="isLoading"
+                >
+                <select v-model="newTask.priority" class="priority-select">
+                    <option value="low">低优先级</option>
+                    <option value="medium">中优先级</option>
+                    <option value="high">高优先级</option>
+                </select>
+                <button 
+                    @click="addTask"
+                    :disabled="!newTask.text.trim() || isLoading"
+                    class="add-btn"
+                >
+                    {{ isLoading ? '添加中...' : '添加任务' }}
+                </button>
+            </div>
+            
+            <!-- 搜索框 -->
+            <div class="search-container">
+                <input 
+                    v-model="searchQuery"
+                    class="search-input"
+                    placeholder="🔍 搜索任务..."
+                >
+            </div>
+            
+            <!-- 进度条 -->
+            <div class="progress-bar">
+                <div class="progress-fill" :style="{ width: progressPercentage + '%' }"></div>
+            </div>
+        </div>
+        
+        <!-- 控制区域 -->
+        <div class="controls">
+            <div class="filter-buttons">
+                <button 
+                    v-for="filter in filters"
+                    :key="filter.key"
+                    @click="currentFilter = filter.key"
+                    :class="['filter-btn', { active: currentFilter === filter.key }]"
+                >
+                    {{ filter.label }} ({{ getFilterCount(filter.key) }})
+                </button>
+            </div>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    总计: <span class="stat-number">{{ todos.length }}</span>
+                </div>
+                <div class="stat-item">
+                    已完成: <span class="stat-number">{{ completedCount }}</span>
+                </div>
+                <div class="stat-item">
+                    进度: <span class="stat-number">{{ progressPercentage }}%</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 任务列表 -->
+        <div class="todo-list">
+            <!-- 空状态 -->
+            <div v-if="filteredTodos.length === 0" class="empty-state">
+                <div class="icon">{{ getEmptyStateIcon() }}</div>
+                <h3>{{ getEmptyStateMessage() }}</h3>
+                <p v-if="currentFilter === 'all' && searchQuery === ''">开始添加你的第一个任务吧！</p>
+            </div>
+            
+            <!-- 任务项 -->
+            <div 
+                v-for="(todo, index) in filteredTodos"
+                :key="todo.id"
+                :class="[
+                    'todo-item',
+                    { completed: todo.completed },
+                    todo.priority + '-priority'
+                ]"
+            >
+                <!-- 复选框 -->
+                <input 
+                    type="checkbox"
+                    v-model="todo.completed"
+                    class="todo-checkbox"
+                    @change="updateProgress"
+                >
+                
+                <!-- 任务内容 -->
+                <div class="todo-content">
+                    <!-- 显示模式 -->
+                    <div 
+                        :class="['todo-text', { completed: todo.completed, editing: todo.editing }]"
+                        @dblclick="startEdit(todo)"
+                    >
+                        {{ todo.text }}
+                    </div>
+                    
+                    <!-- 编辑模式 -->
+                    <input 
+                        v-if="todo.editing"
+                        v-model="todo.editText"
+                        @keyup.enter="finishEdit(todo)"
+                        @keyup.esc="cancelEdit(todo)"
+                        @blur="finishEdit(todo)"
+                        class="todo-edit active"
+                        ref="editInput"
+                    >
+                    
+                    <!-- 元信息 -->
+                    <div class="todo-meta">
+                        <span :class="['priority-badge', 'priority-' + todo.priority]">
+                            {{ getPriorityText(todo.priority) }}
+                        </span>
+                        <span>创建时间: {{ formatDate(todo.createdAt) }}</span>
+                        <span v-if="todo.completedAt">完成时间: {{ formatDate(todo.completedAt) }}</span>
+                    </div>
+                </div>
+                
+                <!-- 操作按钮 -->
+                <div class="todo-actions">
+                    <button 
+                        @click="startEdit(todo)"
+                        class="action-btn edit-btn"
+                        :disabled="todo.completed"
+                    >
+                        编辑
+                    </button>
+                    <button 
+                        @click="deleteTask(index)"
+                        class="action-btn delete-btn"
+                    >
+                        删除
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 批量操作 -->
+        <div class="bulk-actions" v-if="todos.length > 0">
+            <button @click="toggleAll" class="bulk-btn">
+                {{ allCompleted ? '全部取消' : '全部完成' }}
+            </button>
+            <button @click="clearCompleted" class="bulk-btn" :disabled="completedCount === 0">
+                清除已完成 ({{ completedCount }})
+            </button>
+            <button @click="clearAll" class="bulk-btn">
+                清空所有
+            </button>
+            <button @click="exportTasks" class="bulk-btn">
+                导出任务
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        
+        createApp({
+            data() {
+                return {
+                    // 新任务输入
+                    newTask: {
+                        text: '',
+                        priority: 'medium'
+                    },
+                    
+                    // 任务列表
+                    todos: [
+                        {
+                            id: 1,
+                            text: '学习Vue.js数据绑定',
+                            completed: false,
+                            priority: 'high',
+                            createdAt: new Date(),
+                            completedAt: null,
+                            editing: false,
+                            editText: ''
+                        },
+                        {
+                            id: 2,
+                            text: '掌握Vue指令系统',
+                            completed: false,
+                            priority: 'medium',
+                            createdAt: new Date(Date.now() - 3600000),
+                            completedAt: null,
+                            editing: false,
+                            editText: ''
+                        },
+                        {
+                            id: 3,
+                            text: '完成Todo List项目',
+                            completed: true,
+                            priority: 'low',
+                            createdAt: new Date(Date.now() - 7200000),
+                            completedAt: new Date(Date.now() - 1800000),
+                            editing: false,
+                            editText: ''
+                        }
+                    ],
+                    
+                    // 过滤器
+                    currentFilter: 'all',
+                    filters: [
+                        { key: 'all', label: '全部' },
+                        { key: 'active', label: '未完成' },
+                        { key: 'completed', label: '已完成' }
+                    ],
+                    
+                    // 搜索
+                    searchQuery: '',
+                    
+                    // 状态
+                    isLoading: false,
+                    nextId: 4
+                }
+            },
+            
+            computed: {
+                // 过滤后的任务列表
+                filteredTodos() {
+                    let filtered = this.todos;
+                    
+                    // 按状态过滤
+                    if (this.currentFilter === 'active') {
+                        filtered = filtered.filter(todo => !todo.completed);
+                    } else if (this.currentFilter === 'completed') {
+                        filtered = filtered.filter(todo => todo.completed);
+                    }
+                    
+                    // 按搜索关键词过滤
+                    if (this.searchQuery.trim()) {
+                        const query = this.searchQuery.toLowerCase();
+                        filtered = filtered.filter(todo => 
+                            todo.text.toLowerCase().includes(query)
+                        );
+                    }
+                    
+                    // 按优先级排序
+                    return filtered.sort((a, b) => {
+                        const priorityOrder = { high: 3, medium: 2, low: 1 };
+                        return priorityOrder[b.priority] - priorityOrder[a.priority];
+                    });
+                },
+                
+                // 已完成任务数量
+                completedCount() {
+                    return this.todos.filter(todo => todo.completed).length;
+                },
+                
+                // 进度百分比
+                progressPercentage() {
+                    if (this.todos.length === 0) return 0;
+                    return Math.round((this.completedCount / this.todos.length) * 100);
+                },
+                
+                // 是否全部完成
+                allCompleted() {
+                    return this.todos.length > 0 && this.completedCount === this.todos.length;
+                }
+            },
+            
+            methods: {
+                // 添加任务
+                addTask() {
+                    if (!this.newTask.text.trim()) return;
+                    
+                    this.isLoading = true;
+                    
+                    // 模拟异步操作
+                    setTimeout(() => {
+                        const task = {
+                            id: this.nextId++,
+                            text: this.newTask.text.trim(),
+                            completed: false,
+                            priority: this.newTask.priority,
+                            createdAt: new Date(),
+                            completedAt: null,
+                            editing: false,
+                            editText: ''
+                        };
+                        
+                        this.todos.push(task);
+                        this.newTask.text = '';
+                        this.newTask.priority = 'medium';
+                        this.isLoading = false;
+                        
+                        // 保存到本地存储
+                        this.saveTodos();
+                    }, 300);
+                },
+                
+                // 删除任务
+                deleteTask(index) {
+                    if (confirm('确定要删除这个任务吗？')) {
+                        // 找到原始索引
+                        const todo = this.filteredTodos[index];
+                        const originalIndex = this.todos.findIndex(t => t.id === todo.id);
+                        this.todos.splice(originalIndex, 1);
+                        this.saveTodos();
+                    }
+                },
+                
+                // 开始编辑
+                startEdit(todo) {
+                    if (todo.completed) return;
+                    
+                    todo.editText = todo.text;
+                    todo.editing = true;
+                    
+                    // 聚焦到编辑输入框
+                    this.$nextTick(() => {
+                        const editInputs = this.$refs.editInput;
+                        if (editInputs) {
+                            const input = Array.isArray(editInputs) ? editInputs[editInputs.length - 1] : editInputs;
+                            input.focus();
+                            input.select();
+                        }
+                    });
+                },
+                
+                // 完成编辑
+                finishEdit(todo) {
+                    if (!todo.editing) return;
+                    
+                    const newText = todo.editText.trim();
+                    if (newText) {
+                        todo.text = newText;
+                    }
+                    
+                    todo.editing = false;
+                    todo.editText = '';
+                    this.saveTodos();
+                },
+                
+                // 取消编辑
+                cancelEdit(todo) {
+                    todo.editing = false;
+                    todo.editText = '';
+                },
+                
+                // 切换全部完成状态
+                toggleAll() {
+                    const targetState = !this.allCompleted;
+                    this.todos.forEach(todo => {
+                        todo.completed = targetState;
+                        todo.completedAt = targetState ? new Date() : null;
+                    });
+                    this.saveTodos();
+                },
+                
+                // 清除已完成任务
+                clearCompleted() {
+                    if (confirm(`确定要删除 ${this.completedCount} 个已完成的任务吗？`)) {
+                        this.todos = this.todos.filter(todo => !todo.completed);
+                        this.saveTodos();
+                    }
+                },
+                
+                // 清空所有任务
+                clearAll() {
+                    if (confirm('确定要删除所有任务吗？此操作不可恢复！')) {
+                        this.todos = [];
+                        this.saveTodos();
+                    }
+                },
+                
+                // 导出任务
+                exportTasks() {
+                    const data = {
+                        exportDate: new Date().toISOString(),
+                        totalTasks: this.todos.length,
+                        completedTasks: this.completedCount,
+                        tasks: this.todos.map(todo => ({
+                            text: todo.text,
+                            completed: todo.completed,
+                            priority: todo.priority,
+                            createdAt: todo.createdAt,
+                            completedAt: todo.completedAt
+                        }))
+                    };
+                    
+                    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `todos-${new Date().toISOString().split('T')[0]}.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                },
+                
+                // 更新进度
+                updateProgress() {
+                    this.todos.forEach(todo => {
+                        if (todo.completed && !todo.completedAt) {
+                            todo.completedAt = new Date();
+                        } else if (!todo.completed && todo.completedAt) {
+                            todo.completedAt = null;
+                        }
+                    });
+                    this.saveTodos();
+                },
+                
+                // 获取过滤器计数
+                getFilterCount(filterKey) {
+                    if (filterKey === 'all') return this.todos.length;
+                    if (filterKey === 'active') return this.todos.length - this.completedCount;
+                    if (filterKey === 'completed') return this.completedCount;
+                    return 0;
+                },
+                
+                // 获取优先级文本
+                getPriorityText(priority) {
+                    const map = {
+                        high: '高优先级',
+                        medium: '中优先级',
+                        low: '低优先级'
+                    };
+                    return map[priority] || priority;
+                },
+                
+                // 格式化日期
+                formatDate(date) {
+                    if (!date) return '';
+                    return new Date(date).toLocaleString('zh-CN', {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                },
+                
+                // 获取空状态图标
+                getEmptyStateIcon() {
+                    if (this.searchQuery.trim()) return '🔍';
+                    if (this.currentFilter === 'completed') return '🎉';
+                    if (this.currentFilter === 'active') return '💪';
+                    return '📝';
+                },
+                
+                // 获取空状态消息
+                getEmptyStateMessage() {
+                    if (this.searchQuery.trim()) return '没有找到匹配的任务';
+                    if (this.currentFilter === 'completed') return '还没有完成的任务';
+                    if (this.currentFilter === 'active') return '太棒了！所有任务都完成了';
+                    return '暂无任务';
+                },
+                
+                // 保存到本地存储
+                saveTodos() {
+                    try {
+                        localStorage.setItem('vue-todos', JSON.stringify(this.todos));
+                    } catch (e) {
+                        console.warn('无法保存到本地存储:', e);
+                    }
+                },
+                
+                // 从本地存储加载
+                loadTodos() {
+                    try {
+                        const saved = localStorage.getItem('vue-todos');
+                        if (saved) {
+                            const todos = JSON.parse(saved);
+                            // 恢复日期对象
+                            todos.forEach(todo => {
+                                todo.createdAt = new Date(todo.createdAt);
+                                if (todo.completedAt) {
+                                    todo.completedAt = new Date(todo.completedAt);
+                                }
+                                todo.editing = false;
+                                todo.editText = '';
+                            });
+                            this.todos = todos;
+                            this.nextId = Math.max(...todos.map(t => t.id), 0) + 1;
+                        }
+                    } catch (e) {
+                        console.warn('无法从本地存储加载:', e);
+                    }
+                }
+            },
+            
+            // 生命周期钩子
+            created() {
+                console.log('📝 Todo List 应用创建完成');
+                this.loadTodos();
+            },
+            
+            mounted() {
+                console.log('📝 Todo List 应用挂载完成');
+                console.log('当前任务数量:', this.todos.length);
+            }
+        }).mount('#todo-app');
+    </script>
+</body>
+</html>

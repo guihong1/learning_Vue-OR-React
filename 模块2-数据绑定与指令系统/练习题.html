@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模块2练习题 - 数据绑定与指令系统</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f7fa;
+            line-height: 1.6;
+        }
+        
+        .header {
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .exercise {
+            background: white;
+            margin: 25px 0;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #667eea;
+        }
+        
+        .exercise h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        
+        .task {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #17a2b8;
+        }
+        
+        .task h4 {
+            color: #17a2b8;
+            margin-bottom: 10px;
+        }
+        
+        .result {
+            background: #e8f5e8;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #28a745;
+        }
+        
+        .demo-area {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #ffc107;
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+        
+        .btn.danger {
+            background: #dc3545;
+        }
+        
+        .btn.danger:hover {
+            background: #c82333;
+        }
+        
+        .btn.success {
+            background: #28a745;
+        }
+        
+        .btn.success:hover {
+            background: #218838;
+        }
+        
+        .input-field {
+            padding: 12px 16px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            margin: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .select-field {
+            padding: 12px 16px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            margin: 8px;
+            font-size: 14px;
+            background: white;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .highlight {
+            background: #fff3cd;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: #856404;
+        }
+        
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .info {
+            color: #17a2b8;
+            font-weight: bold;
+        }
+        
+        .card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .list-item {
+            padding: 12px;
+            margin: 8px 0;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .list-item.completed {
+            opacity: 0.7;
+            text-decoration: line-through;
+            border-left-color: #28a745;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .flex {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #e83e8c;
+        }
+        
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .flex {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎯 模块2练习题</h1>
+        <h2>数据绑定与指令系统</h2>
+        <p>通过以下练习深入掌握Vue.js的核心指令和数据绑定技术</p>
+    </div>
+
+    <!-- 练习1：v-model双向绑定 -->
+    <div class="exercise">
+        <h3>练习1：v-model双向数据绑定</h3>
+        <div class="task">
+            <h4>📝 任务要求：</h4>
+            <p>创建一个用户注册表单，包含各种表单元素的双向绑定，并实时显示用户输入的信息。</p>
+        </div>
+        
+        <div id="exercise1">
+            <div class="grid">
+                <div class="card">
+                    <h4>📋 注册表单</h4>
+                    
+                    <!-- 文本输入 -->
+                    <div>
+                        <label>用户名：</label>
+                        <input v-model="user.username" class="input-field" placeholder="输入用户名">
+                    </div>
+                    
+                    <!-- 密码输入 -->
+                    <div>
+                        <label>密码：</label>
+                        <input v-model="user.password" type="password" class="input-field" placeholder="输入密码">
+                    </div>
+                    
+                    <!-- 邮箱输入 -->
+                    <div>
+                        <label>邮箱：</label>
+                        <input v-model.trim="user.email" type="email" class="input-field" placeholder="输入邮箱">
+                    </div>
+                    
+                    <!-- 年龄输入 -->
+                    <div>
+                        <label>年龄：</label>
+                        <input v-model.number="user.age" type="number" class="input-field" placeholder="输入年龄">
+                    </div>
+                    
+                    <!-- 性别选择 -->
+                    <div>
+                        <label>性别：</label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" id="male" value="male" v-model="user.gender">
+                                <label for="male">男</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" id="female" value="female" v-model="user.gender">
+                                <label for="female">女</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 兴趣爱好 -->
+                    <div>
+                        <label>兴趣爱好：</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="reading" value="reading" v-model="user.hobbies">
+                                <label for="reading">阅读</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="music" value="music" v-model="user.hobbies">
+                                <label for="music">音乐</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="sports" value="sports" v-model="user.hobbies">
+                                <label for="sports">运动</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="travel" value="travel" v-model="user.hobbies">
+                                <label for="travel">旅行</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 城市选择 -->
+                    <div>
+                        <label>所在城市：</label>
+                        <select v-model="user.city" class="select-field">
+                            <option value="">请选择城市</option>
+                            <option value="beijing">北京</option>
+                            <option value="shanghai">上海</option>
+                            <option value="guangzhou">广州</option>
+                            <option value="shenzhen">深圳</option>
+                        </select>
+                    </div>
+                    
+                    <!-- 自我介绍 -->
+                    <div>
+                        <label>自我介绍：</label>
+                        <textarea v-model.lazy="user.bio" class="input-field" style="width: 100%; height: 80px;" placeholder="介绍一下自己..."></textarea>
+                    </div>
+                    
+                    <!-- 同意条款 -->
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="agree" v-model="user.agreeTerms">
+                        <label for="agree">我同意用户协议和隐私政策</label>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h4>📊 实时预览</h4>
+                    <div class="result">
+                        <p><strong>用户名：</strong>{{ user.username || '未填写' }}</p>
+                        <p><strong>密码：</strong>{{ user.password ? '●'.repeat(user.password.length) : '未填写' }}</p>
+                        <p><strong>邮箱：</strong>{{ user.email || '未填写' }}</p>
+                        <p><strong>年龄：</strong>{{ user.age || '未填写' }}</p>
+                        <p><strong>性别：</strong>{{ getGenderText(user.gender) }}</p>
+                        <p><strong>兴趣爱好：</strong>{{ user.hobbies.length > 0 ? user.hobbies.join(', ') : '未选择' }}</p>
+                        <p><strong>所在城市：</strong>{{ getCityText(user.city) }}</p>
+                        <p><strong>自我介绍：</strong>{{ user.bio || '未填写' }}</p>
+                        <p><strong>同意条款：</strong><span :class="user.agreeTerms ? 'success' : 'error'">{{ user.agreeTerms ? '已同意' : '未同意' }}</span></p>
+                    </div>
+                    
+                    <button @click="submitForm" :disabled="!isFormValid" class="btn" :class="isFormValid ? 'success' : ''">
+                        {{ isFormValid ? '提交注册' : '请完善信息' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 练习2：条件渲染 -->
+    <div class="exercise">
+        <h3>练习2：条件渲染（v-if / v-show）</h3>
+        <div class="task">
+            <h4>📝 任务要求：</h4>
+            <p>创建一个多状态的内容管理系统，根据不同条件显示不同的内容，体验v-if和v-show的区别。</p>
+        </div>
+        
+        <div id="exercise2">
+            <div class="flex">
+                <button @click="currentView = 'login'" :class="['btn', currentView === 'login' ? 'success' : '']">登录页面</button>
+                <button @click="currentView = 'dashboard'" :class="['btn', currentView === 'dashboard' ? 'success' : '']">仪表板</button>
+                <button @click="currentView = 'profile'" :class="['btn', currentView === 'profile' ? 'success' : '']">个人资料</button>
+                <button @click="currentView = 'settings'" :class="['btn', currentView === 'settings' ? 'success' : '']">设置</button>
+            </div>
+            
+            <div class="flex">
+                <label>
+                    <input type="checkbox" v-model="showSidebar"> 显示侧边栏
+                </label>
+                <label>
+                    <input type="checkbox" v-model="showNotifications"> 显示通知
+                </label>
+                <label>
+                    <input type="checkbox" v-model="isLoading"> 加载状态
+                </label>
+            </div>
+            
+            <div class="grid">
+                <!-- 侧边栏 (v-show) -->
+                <div v-show="showSidebar" class="card">
+                    <h4>📋 侧边栏 (v-show)</h4>
+                    <ul>
+                        <li>首页</li>
+                        <li>用户管理</li>
+                        <li>数据统计</li>
+                        <li>系统设置</li>
+                    </ul>
+                    <p class="info">💡 使用v-show，元素始终存在DOM中</p>
+                </div>
+                
+                <!-- 主内容区 -->
+                <div class="card">
+                    <h4>📄 主内容区 (v-if)</h4>
+                    
+                    <!-- 加载状态 -->
+                    <div v-if="isLoading" class="demo-area">
+                        <p>⏳ 正在加载...</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 60%;">60%</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 登录页面 -->
+                    <div v-else-if="currentView === 'login'" class="result">
+                        <h4>🔐 登录页面</h4>
+                        <input class="input-field" placeholder="用户名">
+                        <input class="input-field" type="password" placeholder="密码">
+                        <button class="btn">登录</button>
+                    </div>
+                    
+                    <!-- 仪表板 -->
+                    <div v-else-if="currentView === 'dashboard'" class="result">
+                        <h4>📊 仪表板</h4>
+                        <div class="grid">
+                            <div class="card">
+                                <h5>用户数量</h5>
+                                <p class="highlight">1,234</p>
+                            </div>
+                            <div class="card">
+                                <h5>订单数量</h5>
+                                <p class="highlight">5,678</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 个人资料 -->
+                    <div v-else-if="currentView === 'profile'" class="result">
+                        <h4>👤 个人资料</h4>
+                        <p><strong>姓名：</strong>张三</p>
+                        <p><strong>邮箱：</strong>zhangsan@example.com</p>
+                        <p><strong>角色：</strong>管理员</p>
+                    </div>
+                    
+                    <!-- 设置页面 -->
+                    <div v-else-if="currentView === 'settings'" class="result">
+                        <h4>⚙️ 系统设置</h4>
+                        <label><input type="checkbox"> 启用通知</label><br>
+                        <label><input type="checkbox"> 自动保存</label><br>
+                        <label><input type="checkbox"> 深色模式</label>
+                    </div>
+                    
+                    <!-- 默认页面 -->
+                    <div v-else class="demo-area">
+                        <h4>❓ 未知页面</h4>
+                        <p>请选择一个有效的页面</p>
+                    </div>
+                    
+                    <p class="info">💡 使用v-if，条件为false时元素不存在DOM中</p>
+                </div>
+            </div>
+            
+            <!-- 通知区域 -->
+            <div v-show="showNotifications" class="demo-area">
+                <h4>🔔 通知中心</h4>
+                <div class="list-item">
+                    <span>系统更新通知</span>
+                    <button class="btn">查看</button>
+                </div>
+                <div class="list-item">
+                    <span>新用户注册</span>
+                    <button class="btn">查看</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 练习3：列表渲染 -->
+    <div class="exercise">
+        <h3>练习3：列表渲染（v-for）</h3>
+        <div class="task">
+            <h4>📝 任务要求：</h4>
+            <p>创建一个学生管理系统，展示v-for的各种用法，包括数组遍历、对象遍历、嵌套循环等。</p>
+        </div>
+        
+        <div id="exercise3">
+            <div class="flex">
+                <input v-model="newStudent.name" class="input-field" placeholder="学生姓名">
+                <input v-model.number="newStudent.age" type="number" class="input-field" placeholder="年龄">
+                <select v-model="newStudent.grade" class="select-field">
+                    <option value="">选择年级</option>
+                    <option value="一年级">一年级</option>
+                    <option value="二年级">二年级</option>
+                    <option value="三年级">三年级</option>
+                </select>
+                <button @click="addStudent" class="btn">添加学生</button>
+            </div>
+            
+            <div class="grid">
+                <!-- 学生列表 -->
+                <div class="card">
+                    <h4>👥 学生列表 ({{ students.length }}人)</h4>
+                    <div v-if="students.length === 0" class="demo-area">
+                        <p>暂无学生数据</p>
+                    </div>
+                    <div v-else>
+                        <div 
+                            v-for="(student, index) in students" 
+                            :key="student.id"
+                            class="list-item"
+                        >
+                            <div>
+                                <strong>{{ student.name }}</strong>
+                                <span class="code">ID: {{ student.id }}</span>
+                                <br>
+                                <small>{{ student.age }}岁 - {{ student.grade }}</small>
+                            </div>
+                            <div>
+                                <button @click="removeStudent(index)" class="btn danger">删除</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 按年级分组 -->
+                <div class="card">
+                    <h4>📚 按年级分组</h4>
+                    <div v-for="(gradeStudents, grade) in studentsByGrade" :key="grade">
+                        <h5>{{ grade }} ({{ gradeStudents.length }}人)</h5>
+                        <div 
+                            v-for="student in gradeStudents" 
+                            :key="student.id"
+                            class="list-item"
+                        >
+                            {{ student.name }} - {{ student.age }}岁
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 统计信息 -->
+            <div class="card">
+                <h4>📊 统计信息</h4>
+                <div class="grid">
+                    <div v-for="(value, key) in statistics" :key="key" class="card">
+                        <h5>{{ getStatLabel(key) }}</h5>
+                        <p class="highlight">{{ value }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 嵌套循环示例 -->
+            <div class="card">
+                <h4>🏫 班级课程表</h4>
+                <div v-for="classInfo in classes" :key="classInfo.name" class="demo-area">
+                    <h5>{{ classInfo.name }}</h5>
+                    <div class="grid">
+                        <div v-for="(subjects, day) in classInfo.schedule" :key="day" class="card">
+                            <h6>{{ day }}</h6>
+                            <ul>
+                                <li v-for="(subject, period) in subjects" :key="period">
+                                    第{{ period + 1 }}节：{{ subject }}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 练习4：事件处理 -->
+    <div class="exercise">
+        <h3>练习4：事件处理（v-on）</h3>
+        <div class="task">
+            <h4>📝 任务要求：</h4>
+            <p>创建一个交互式游戏，展示各种事件处理技巧，包括事件修饰符、按键修饰符等。</p>
+        </div>
+        
+        <div id="exercise4">
+            <div class="grid">
+                <!-- 点击游戏 -->
+                <div class="card">
+                    <h4>🎯 点击游戏</h4>
+                    <div class="result">
+                        <p>得分：<span class="highlight">{{ gameScore }}</span></p>
+                        <p>连击：<span class="highlight">{{ comboCount }}</span></p>
+                    </div>
+                    
+                    <div 
+                        @click="handleClick"
+                        @dblclick="handleDoubleClick"
+                        @mouseenter="handleMouseEnter"
+                        @mouseleave="handleMouseLeave"
+                        class="demo-area"
+                        style="height: 150px; cursor: pointer; text-align: center; display: flex; align-items: center; justify-content: center;"
+                        :style="{ backgroundColor: gameAreaColor }"
+                    >
+                        <h3>{{ gameMessage }}</h3>
+                    </div>
+                    
+                    <div class="flex">
+                        <button @click="resetGame" class="btn">重置游戏</button>
+                        <button @click.once="showBonus" class="btn success">一次性奖励</button>
+                    </div>
+                </div>
+                
+                <!-- 键盘事件 -->
+                <div class="card">
+                    <h4>⌨️ 键盘控制</h4>
+                    <div class="result">
+                        <p>最后按键：<span class="highlight">{{ lastKey }}</span></p>
+                        <p>按键次数：<span class="highlight">{{ keyCount }}</span></p>
+                    </div>
+                    
+                    <input 
+                        v-model="keyboardInput"
+                        @keyup="handleKeyUp"
+                        @keyup.enter="handleEnter"
+                        @keyup.esc="handleEscape"
+                        @keyup.space="handleSpace"
+                        @keyup.ctrl.s="handleSave"
+                        class="input-field"
+                        placeholder="试试按Enter、Esc、Space、Ctrl+S"
+                        style="width: 100%;"
+                    >
+                    
+                    <div class="demo-area">
+                        <p><strong>快捷键说明：</strong></p>
+                        <ul>
+                            <li><span class="code">Enter</span> - 确认输入</li>
+                            <li><span class="code">Esc</span> - 清空输入</li>
+                            <li><span class="code">Space</span> - 添加空格</li>
+                            <li><span class="code">Ctrl+S</span> - 保存</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 表单事件 -->
+            <div class="card">
+                <h4>📝 表单事件处理</h4>
+                <form @submit.prevent="handleSubmit">
+                    <div class="flex">
+                        <input 
+                            v-model="formData.message"
+                            @input="handleInput"
+                            @focus="handleFocus"
+                            @blur="handleBlur"
+                            class="input-field"
+                            placeholder="输入消息"
+                        >
+                        <button type="submit" class="btn">提交</button>
+                    </div>
+                </form>
+                
+                <div class="result">
+                    <p>输入状态：<span :class="inputStatus.class">{{ inputStatus.text }}</span></p>
+                    <p>字符数量：<span class="highlight">{{ formData.message.length }}</span></p>
+                    <p>提交次数：<span class="highlight">{{ submitCount }}</span></p>
+                </div>
+                
+                <!-- 事件冒泡演示 -->
+                <div class="demo-area">
+                    <h5>🎈 事件冒泡演示</h5>
+                    <div 
+                        @click="handleOuterClick"
+                        style="padding: 20px; background: #e9ecef; border-radius: 8px;"
+                    >
+                        外层容器
+                        <div 
+                            @click.stop="handleInnerClick"
+                            style="padding: 15px; background: #fff3cd; border-radius: 6px; margin: 10px;"
+                        >
+                            内层容器 (阻止冒泡)
+                            <button @click="handleButtonClick" class="btn">按钮</button>
+                        </div>
+                    </div>
+                    <p class="info">点击不同区域观察事件冒泡</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 练习5：属性绑定 -->
+    <div class="exercise">
+        <h3>练习5：属性绑定（v-bind）</h3>
+        <div class="task">
+            <h4>📝 任务要求：</h4>
+            <p>创建一个主题切换器，展示动态样式绑定、类绑定、属性绑定等技巧。</p>
+        </div>
+        
+        <div id="exercise5">
+            <div class="flex">
+                <button @click="currentTheme = 'light'" :class="['btn', currentTheme === 'light' ? 'success' : '']">浅色主题</button>
+                <button @click="currentTheme = 'dark'" :class="['btn', currentTheme === 'dark' ? 'success' : '']">深色主题</button>
+                <button @click="currentTheme = 'colorful'" :class="['btn', currentTheme === 'colorful' ? 'success' : '']">彩色主题</button>
+            </div>
+            
+            <div class="flex">
+                <label>字体大小：</label>
+                <input v-model.number="fontSize" type="range" min="12" max="24" step="1">
+                <span>{{ fontSize }}px</span>
+            </div>
+            
+            <div class="flex">
+                <label>边框宽度：</label>
+                <input v-model.number="borderWidth" type="range" min="0" max="10" step="1">
+                <span>{{ borderWidth }}px</span>
+            </div>
+            
+            <div class="grid">
+                <!-- 动态样式演示 -->
+                <div 
+                    class="card"
+                    :style="{
+                        backgroundColor: themeColors[currentTheme].background,
+                        color: themeColors[currentTheme].text,
+                        fontSize: fontSize + 'px',
+                        border: borderWidth + 'px solid ' + themeColors[currentTheme].border
+                    }"
+                >
+                    <h4>🎨 动态样式演示</h4>
+                    <p>当前主题：{{ currentTheme }}</p>
+                    <p>这是一个使用动态样式的卡片</p>
+                    <p>字体大小：{{ fontSize }}px</p>
+                    <p>边框宽度：{{ borderWidth }}px</p>
+                </div>
+                
+                <!-- 动态类绑定 -->
+                <div class="card">
+                    <h4>📋 动态类绑定</h4>
+                    <div class="flex">
+                        <label><input type="checkbox" v-model="classFlags.active"> Active</label>
+                        <label><input type="checkbox" v-model="classFlags.highlighted"> Highlighted</label>
+                        <label><input type="checkbox" v-model="classFlags.disabled"> Disabled</label>
+                    </div>
+                    
+                    <div 
+                        :class="{
+                            'demo-area': true,
+                            'active': classFlags.active,
+                            'highlighted': classFlags.highlighted,
+                            'disabled': classFlags.disabled
+                        }"
+                        :style="{
+                            opacity: classFlags.disabled ? 0.5 : 1,
+                            backgroundColor: classFlags.highlighted ? '#fff3cd' : (classFlags.active ? '#d4edda' : '#f8f9fa'),
+                            cursor: classFlags.disabled ? 'not-allowed' : 'pointer'
+                        }"
+                    >
+                        <p>动态类绑定示例</p>
+                        <p>当前状态：{{ getClassStatus() }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 动态属性绑定 -->
+            <div class="card">
+                <h4>🔗 动态属性绑定</h4>
+                <div class="flex">
+                    <input v-model="linkUrl" class="input-field" placeholder="输入链接地址">
+                    <input v-model="linkText" class="input-field" placeholder="输入链接文本">
+                    <input v-model="imageUrl" class="input-field" placeholder="输入图片地址">
+                </div>
+                
+                <div class="result">
+                    <p>动态链接：
+                        <a 
+                            :href="linkUrl || '#'"
+                            :title="'链接到：' + (linkUrl || '无效链接')"
+                            :target="linkUrl ? '_blank' : '_self'"
+                            :class="{ 'error': !linkUrl }"
+                        >
+                            {{ linkText || '默认链接文本' }}
+                        </a>
+                    </p>
+                    
+                    <p>动态图片：</p>
+                    <img 
+                        :src="imageUrl || 'https://via.placeholder.com/150x100?text=No+Image'"
+                        :alt="'图片：' + (imageUrl || '默认图片')"
+                        :title="imageUrl || '请输入图片地址'"
+                        style="max-width: 200px; border-radius: 8px;"
+                        @error="handleImageError"
+                        @load="handleImageLoad"
+                    >
+                    
+                    <p class="info">图片状态：{{ imageStatus }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        
+        // 练习1：v-model双向绑定
+        createApp({
+            data() {
+                return {
+                    user: {
+                        username: '',
+                        password: '',
+                        email: '',
+                        age: '',
+                        gender: '',
+                        hobbies: [],
+                        city: '',
+                        bio: '',
+                        agreeTerms: false
+                    }
+                }
+            },
+            computed: {
+                isFormValid() {
+                    return this.user.username && 
+                           this.user.password && 
+                           this.user.email && 
+                           this.user.age && 
+                           this.user.gender && 
+                           this.user.city && 
+                           this.user.agreeTerms;
+                }
+            },
+            methods: {
+                getGenderText(gender) {
+                    const map = { male: '男', female: '女' };
+                    return map[gender] || '未选择';
+                },
+                getCityText(city) {
+                    const map = {
+                        beijing: '北京',
+                        shanghai: '上海',
+                        guangzhou: '广州',
+                        shenzhen: '深圳'
+                    };
+                    return map[city] || '未选择';
+                },
+                submitForm() {
+                    if (this.isFormValid) {
+                        alert('注册成功！\n' + JSON.stringify(this.user, null, 2));
+                    }
+                }
+            }
+        }).mount('#exercise1');
+        
+        // 练习2：条件渲染
+        createApp({
+            data() {
+                return {
+                    currentView: 'login',
+                    showSidebar: true,
+                    showNotifications: false,
+                    isLoading: false
+                }
+            }
+        }).mount('#exercise2');
+        
+        // 练习3：列表渲染
+        createApp({
+            data() {
+                return {
+                    students: [
+                        { id: 1, name: '张三', age: 8, grade: '一年级' },
+                        { id: 2, name: '李四', age: 9, grade: '二年级' },
+                        { id: 3, name: '王五', age: 10, grade: '三年级' }
+                    ],
+                    newStudent: {
+                        name: '',
+                        age: '',
+                        grade: ''
+                    },
+                    nextId: 4,
+                    classes: [
+                        {
+                            name: '一年级A班',
+                            schedule: {
+                                '周一': ['语文', '数学', '英语', '体育'],
+                                '周二': ['数学', '语文', '音乐', '美术'],
+                                '周三': ['英语', '数学', '科学', '体育']
+                            }
+                        }
+                    ]
+                }
+            },
+            computed: {
+                studentsByGrade() {
+                    const groups = {};
+                    this.students.forEach(student => {
+                        if (!groups[student.grade]) {
+                            groups[student.grade] = [];
+                        }
+                        groups[student.grade].push(student);
+                    });
+                    return groups;
+                },
+                statistics() {
+                    return {
+                        total: this.students.length,
+                        averageAge: this.students.length > 0 ? 
+                            (this.students.reduce((sum, s) => sum + s.age, 0) / this.students.length).toFixed(1) : 0,
+                        grades: Object.keys(this.studentsByGrade).length
+                    };
+                }
+            },
+            methods: {
+                addStudent() {
+                    if (this.newStudent.name && this.newStudent.age && this.newStudent.grade) {
+                        this.students.push({
+                            id: this.nextId++,
+                            name: this.newStudent.name,
+                            age: this.newStudent.age,
+                            grade: this.newStudent.grade
+                        });
+                        this.newStudent = { name: '', age: '', grade: '' };
+                    }
+                },
+                removeStudent(index) {
+                    this.students.splice(index, 1);
+                },
+                getStatLabel(key) {
+                    const labels = {
+                        total: '学生总数',
+                        averageAge: '平均年龄',
+                        grades: '年级数量'
+                    };
+                    return labels[key] || key;
+                }
+            }
+        }).mount('#exercise3');
+        
+        // 练习4：事件处理
+        createApp({
+            data() {
+                return {
+                    gameScore: 0,
+                    comboCount: 0,
+                    gameMessage: '点击我开始游戏！',
+                    gameAreaColor: '#f8f9fa',
+                    lastKey: '',
+                    keyCount: 0,
+                    keyboardInput: '',
+                    formData: {
+                        message: ''
+                    },
+                    inputStatus: {
+                        text: '未聚焦',
+                        class: 'info'
+                    },
+                    submitCount: 0
+                }
+            },
+            methods: {
+                handleClick() {
+                    this.gameScore += 10;
+                    this.comboCount++;
+                    this.gameMessage = `太棒了！得分 +10`;
+                    this.gameAreaColor = '#d4edda';
+                },
+                handleDoubleClick() {
+                    this.gameScore += 50;
+                    this.comboCount += 5;
+                    this.gameMessage = `双击奖励！得分 +50`;
+                    this.gameAreaColor = '#fff3cd';
+                },
+                handleMouseEnter() {
+                    this.gameAreaColor = '#e2e3e5';
+                },
+                handleMouseLeave() {
+                    this.gameAreaColor = '#f8f9fa';
+                    this.gameMessage = '继续点击游戏！';
+                },
+                resetGame() {
+                    this.gameScore = 0;
+                    this.comboCount = 0;
+                    this.gameMessage = '游戏重置！';
+                    this.gameAreaColor = '#f8f9fa';
+                },
+                showBonus() {
+                    this.gameScore += 100;
+                    alert('一次性奖励 +100 分！');
+                },
+                handleKeyUp(event) {
+                    this.lastKey = event.key;
+                    this.keyCount++;
+                },
+                handleEnter() {
+                    alert('确认输入：' + this.keyboardInput);
+                },
+                handleEscape() {
+                    this.keyboardInput = '';
+                    alert('输入已清空');
+                },
+                handleSpace() {
+                    console.log('空格键被按下');
+                },
+                handleSave(event) {
+                    event.preventDefault();
+                    alert('保存快捷键触发！');
+                },
+                handleSubmit() {
+                    this.submitCount++;
+                    alert('表单提交：' + this.formData.message);
+                },
+                handleInput() {
+                    this.inputStatus = {
+                        text: '正在输入',
+                        class: 'info'
+                    };
+                },
+                handleFocus() {
+                    this.inputStatus = {
+                        text: '输入框已聚焦',
+                        class: 'success'
+                    };
+                },
+                handleBlur() {
+                    this.inputStatus = {
+                        text: '输入框失去焦点',
+                        class: 'error'
+                    };
+                },
+                handleOuterClick() {
+                    console.log('外层容器被点击');
+                },
+                handleInnerClick() {
+                    console.log('内层容器被点击（阻止冒泡）');
+                },
+                handleButtonClick() {
+                    console.log('按钮被点击');
+                }
+            }
+        }).mount('#exercise4');
+        
+        // 练习5：属性绑定
+        createApp({
+            data() {
+                return {
+                    currentTheme: 'light',
+                    fontSize: 16,
+                    borderWidth: 2,
+                    themeColors: {
+                        light: {
+                            background: '#ffffff',
+                            text: '#333333',
+                            border: '#dee2e6'
+                        },
+                        dark: {
+                            background: '#343a40',
+                            text: '#ffffff',
+                            border: '#6c757d'
+                        },
+                        colorful: {
+                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            text: '#ffffff',
+                            border: '#667eea'
+                        }
+                    },
+                    classFlags: {
+                        active: false,
+                        highlighted: false,
+                        disabled: false
+                    },
+                    linkUrl: 'https://vuejs.org',
+                    linkText: 'Vue.js官网',
+                    imageUrl: 'https://vuejs.org/images/logo.png',
+                    imageStatus: '未加载'
+                }
+            },
+            methods: {
+                getClassStatus() {
+                    const statuses = [];
+                    if (this.classFlags.active) statuses.push('激活');
+                    if (this.classFlags.highlighted) statuses.push('高亮');
+                    if (this.classFlags.disabled) statuses.push('禁用');
+                    return statuses.length > 0 ? statuses.join(', ') : '正常';
+                },
+                handleImageError() {
+                    this.imageStatus = '加载失败';
+                },
+                handleImageLoad() {
+                    this.imageStatus = '加载成功';
+                }
+            }
+        }).mount('#exercise5');
+    </script>
+</body>
+</html>
