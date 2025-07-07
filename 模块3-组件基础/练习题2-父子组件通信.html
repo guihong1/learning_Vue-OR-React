@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>练习题2 - Vue3父子组件通信</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .header h1 {
+            color: #333;
+            margin: 0;
+            font-size: 2.5em;
+        }
+        
+        .header p {
+            color: #666;
+            margin: 10px 0 0 0;
+            font-size: 1.1em;
+        }
+        
+        .exercise {
+            margin-bottom: 40px;
+            padding: 25px;
+            border: 2px solid #fce4ec;
+            border-radius: 10px;
+            background: #fafafa;
+        }
+        
+        .exercise h3 {
+            color: #c2185b;
+            margin-top: 0;
+            font-size: 1.4em;
+        }
+        
+        .requirements {
+            background: #fff3e0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #ff9800;
+        }
+        
+        .requirements h4 {
+            margin: 0 0 10px 0;
+            color: #e65100;
+        }
+        
+        .requirements ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .demo-area {
+            border: 2px dashed #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            background: white;
+            min-height: 100px;
+        }
+        
+        .counter-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 15px 0;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .counter-display {
+            font-size: 3em;
+            font-weight: bold;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .counter-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+        }
+        
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #da190b;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(244, 67, 54, 0.4);
+        }
+        
+        .btn-warning {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background: #e68900;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4);
+        }
+        
+        .message-board {
+            background: #e8f5e8;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #4caf50;
+        }
+        
+        .message-board h4 {
+            margin: 0 0 15px 0;
+            color: #2e7d32;
+        }
+        
+        .message-item {
+            background: white;
+            padding: 10px 15px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border-left: 4px solid #4caf50;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .message-item .timestamp {
+            font-size: 0.8em;
+            color: #666;
+            float: right;
+        }
+        
+        .todo-container {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #6c757d;
+        }
+        
+        .todo-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .todo-input input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        .todo-input input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+        }
+        
+        .todo-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .todo-item {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .todo-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .todo-item.completed {
+            opacity: 0.6;
+            text-decoration: line-through;
+        }
+        
+        .todo-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 14px;
+        }
+        
+        .tips {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .tips h4 {
+            margin: 0 0 10px 0;
+            color: #1565c0;
+        }
+        
+        .tips ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .tips li {
+            margin: 5px 0;
+            color: #1976d2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔄 练习题2：父子组件通信</h1>
+            <p>学习Vue3中Props和Emits的使用方法</p>
+        </div>
+        
+        <div class="exercise">
+            <h3>📝 练习1：计数器组件通信</h3>
+            <div class="requirements">
+                <h4>任务目标：</h4>
+                <ul>
+                    <li>创建一个 <code>CounterButton</code> 组件，接收 <code>label</code> 和 <code>step</code> props</li>
+                    <li>组件点击时向父组件发送 <code>increment</code> 事件</li>
+                    <li>父组件监听事件并更新总计数</li>
+                    <li>创建多个不同步长的计数器按钮</li>
+                </ul>
+            </div>
+            
+            <div class="demo-area" id="app">
+                <div class="counter-container">
+                    <h3>🔢 智能计数器</h3>
+                    <div class="counter-display">{{ totalCount }}</div>
+                    <div class="counter-controls">
+                        <counter-button 
+                            label="+1" 
+                            :step="1" 
+                            @increment="handleIncrement">
+                        </counter-button>
+                        <counter-button 
+                            label="+5" 
+                            :step="5" 
+                            @increment="handleIncrement">
+                        </counter-button>
+                        <counter-button 
+                            label="+10" 
+                            :step="10" 
+                            @increment="handleIncrement">
+                        </counter-button>
+                        <button @click="resetCounter" class="btn btn-warning">重置</button>
+                    </div>
+                </div>
+                
+                <div class="message-board">
+                    <h4>📋 操作记录</h4>
+                    <div v-if="messages.length === 0" style="text-align: center; color: #666;">
+                        暂无操作记录
+                    </div>
+                    <div v-for="message in messages" :key="message.id" class="message-item">
+                        <span class="timestamp">{{ message.time }}</span>
+                        {{ message.text }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="exercise">
+            <h3>🔧 练习2：Todo列表组件通信</h3>
+            <div class="requirements">
+                <h4>扩展任务：</h4>
+                <ul>
+                    <li>创建 <code>TodoItem</code> 组件，接收todo对象作为prop</li>
+                    <li>组件能够发送 <code>toggle</code> 和 <code>delete</code> 事件</li>
+                    <li>父组件管理todo列表的状态</li>
+                    <li>实现添加、切换完成状态、删除功能</li>
+                </ul>
+            </div>
+            
+            <div class="demo-area">
+                <div class="todo-container">
+                    <h4>📝 待办事项管理</h4>
+                    <div class="todo-input">
+                        <input 
+                            v-model="newTodo" 
+                            @keyup.enter="addTodo" 
+                            placeholder="输入新的待办事项...">
+                        <button @click="addTodo" class="btn btn-primary">添加</button>
+                    </div>
+                    
+                    <ul class="todo-list">
+                        <todo-item 
+                            v-for="todo in todos" 
+                            :key="todo.id" 
+                            :todo="todo"
+                            @toggle="toggleTodo"
+                            @delete="deleteTodo">
+                        </todo-item>
+                    </ul>
+                    
+                    <div v-if="todos.length === 0" style="text-align: center; color: #666; padding: 20px;">
+                        🎉 暂无待办事项，你很棒！
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tips">
+            <h4>💡 学习提示</h4>
+            <ul>
+                <li><strong>Props传递：</strong>父组件通过属性向子组件传递数据</li>
+                <li><strong>事件发送：</strong>子组件使用 $emit 向父组件发送事件</li>
+                <li><strong>事件监听：</strong>父组件使用 @eventName 监听子组件事件</li>
+                <li><strong>数据流向：</strong>Props向下传递，Events向上传递</li>
+                <li><strong>Vue3新特性：</strong>使用 emits 选项声明组件会发送的事件</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        const { createApp } = Vue;
+        
+        // 计数器按钮组件
+        const CounterButton = {
+            props: {
+                label: {
+                    type: String,
+                    required: true
+                },
+                step: {
+                    type: Number,
+                    default: 1
+                }
+            },
+            emits: ['increment'],
+            template: `
+                <button @click="handleClick" class="btn btn-primary">
+                    {{ label }}
+                </button>
+            `,
+            methods: {
+                handleClick() {
+                    this.$emit('increment', this.step);
+                }
+            }
+        };
+        
+        // Todo项组件
+        const TodoItem = {
+            props: {
+                todo: {
+                    type: Object,
+                    required: true
+                }
+            },
+            emits: ['toggle', 'delete'],
+            template: `
+                <li class="todo-item" :class="{ completed: todo.completed }">
+                    <span @click="toggleComplete" style="cursor: pointer; flex: 1;">
+                        {{ todo.completed ? '✅' : '⭕' }} {{ todo.text }}
+                    </span>
+                    <div class="todo-actions">
+                        <button @click="toggleComplete" class="btn btn-sm" 
+                                :class="todo.completed ? 'btn-warning' : 'btn-primary'">
+                            {{ todo.completed ? '撤销' : '完成' }}
+                        </button>
+                        <button @click="deleteItem" class="btn btn-sm btn-danger">
+                            删除
+                        </button>
+                    </div>
+                </li>
+            `,
+            methods: {
+                toggleComplete() {
+                    this.$emit('toggle', this.todo.id);
+                },
+                deleteItem() {
+                    this.$emit('delete', this.todo.id);
+                }
+            }
+        };
+        
+        // 创建主应用
+        createApp({
+            components: {
+                CounterButton,
+                TodoItem
+            },
+            data() {
+                return {
+                    // 计数器相关
+                    totalCount: 0,
+                    messages: [],
+                    messageId: 1,
+                    
+                    // Todo相关
+                    newTodo: '',
+                    todos: [
+                        { id: 1, text: '学习Vue3组件通信', completed: false },
+                        { id: 2, text: '完成练习题', completed: false },
+                        { id: 3, text: '理解Props和Emits', completed: true }
+                    ],
+                    todoId: 4
+                }
+            },
+            methods: {
+                // 计数器方法
+                handleIncrement(step) {
+                    this.totalCount += step;
+                    this.addMessage(`计数器增加了 ${step}，当前总数：${this.totalCount}`);
+                },
+                resetCounter() {
+                    this.totalCount = 0;
+                    this.addMessage('计数器已重置');
+                },
+                addMessage(text) {
+                    const now = new Date();
+                    const time = now.toLocaleTimeString();
+                    this.messages.unshift({
+                        id: this.messageId++,
+                        text,
+                        time
+                    });
+                    // 只保留最近10条记录
+                    if (this.messages.length > 10) {
+                        this.messages = this.messages.slice(0, 10);
+                    }
+                },
+                
+                // Todo方法
+                addTodo() {
+                    if (this.newTodo.trim()) {
+                        this.todos.push({
+                            id: this.todoId++,
+                            text: this.newTodo.trim(),
+                            completed: false
+                        });
+                        this.newTodo = '';
+                    }
+                },
+                toggleTodo(id) {
+                    const todo = this.todos.find(t => t.id === id);
+                    if (todo) {
+                        todo.completed = !todo.completed;
+                    }
+                },
+                deleteTodo(id) {
+                    this.todos = this.todos.filter(t => t.id !== id);
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

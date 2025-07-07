@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>练习题4 - Vue3动态组件</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .header h1 {
+            color: #333;
+            margin: 0;
+            font-size: 2.5em;
+        }
+        
+        .header p {
+            color: #666;
+            margin: 10px 0 0 0;
+            font-size: 1.1em;
+        }
+        
+        .exercise {
+            margin-bottom: 40px;
+            padding: 25px;
+            border: 2px solid #e3f2fd;
+            border-radius: 10px;
+            background: #fafafa;
+        }
+        
+        .exercise h3 {
+            color: #1565c0;
+            margin-top: 0;
+            font-size: 1.4em;
+        }
+        
+        .requirements {
+            background: #fff3e0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #ff9800;
+        }
+        
+        .requirements h4 {
+            margin: 0 0 10px 0;
+            color: #e65100;
+        }
+        
+        .requirements ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .demo-area {
+            border: 2px dashed #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            background: white;
+            min-height: 200px;
+        }
+        
+        /* 标签页样式 */
+        .tab-container {
+            margin: 20px 0;
+        }
+        
+        .tab-nav {
+            display: flex;
+            border-bottom: 2px solid #e0e0e0;
+            margin-bottom: 20px;
+            background: #f8f9fa;
+            border-radius: 8px 8px 0 0;
+            overflow: hidden;
+        }
+        
+        .tab-item {
+            padding: 15px 25px;
+            cursor: pointer;
+            background: #f8f9fa;
+            border: none;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            position: relative;
+            flex: 1;
+            text-align: center;
+        }
+        
+        .tab-item:hover {
+            background: #e9ecef;
+        }
+        
+        .tab-item.active {
+            background: white;
+            color: #007bff;
+            border-bottom: 3px solid #007bff;
+        }
+        
+        .tab-content {
+            background: white;
+            padding: 20px;
+            border-radius: 0 0 8px 8px;
+            min-height: 300px;
+            border: 1px solid #e0e0e0;
+            border-top: none;
+        }
+        
+        /* 工具栏样式 */
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .toolbar-group {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+        
+        .toolbar-label {
+            font-weight: bold;
+            color: #495057;
+            margin-right: 10px;
+        }
+        
+        /* 按钮样式 */
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #1e7e34;
+            transform: translateY(-2px);
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .btn-warning:hover {
+            background: #e0a800;
+            transform: translateY(-2px);
+        }
+        
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .btn-info:hover {
+            background: #117a8b;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #545b62;
+            transform: translateY(-2px);
+        }
+        
+        .btn.active {
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.25);
+        }
+        
+        /* 卡片样式 */
+        .component-card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .component-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .component-card h4 {
+            margin: 0 0 15px 0;
+            color: #495057;
+            font-size: 1.3em;
+        }
+        
+        .component-card p {
+            color: #6c757d;
+            line-height: 1.6;
+            margin: 10px 0;
+        }
+        
+        /* 表单样式 */
+        .form-group {
+            margin: 15px 0;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.25);
+        }
+        
+        /* 图表样式 */
+        .chart-container {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .chart-bar {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+        
+        .chart-label {
+            width: 80px;
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .chart-progress {
+            flex: 1;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 0 10px;
+        }
+        
+        .chart-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #007bff, #0056b3);
+            transition: width 0.5s ease;
+        }
+        
+        .chart-value {
+            width: 50px;
+            text-align: right;
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        /* 设置面板样式 */
+        .settings-panel {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .settings-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 15px 0;
+            padding: 10px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .settings-row:last-child {
+            border-bottom: none;
+        }
+        
+        .settings-label {
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #007bff;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        /* 提示样式 */
+        .tips {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #28a745;
+        }
+        
+        .tips h4 {
+            margin: 0 0 10px 0;
+            color: #155724;
+        }
+        
+        .tips ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .tips li {
+            margin: 5px 0;
+            color: #155724;
+        }
+        
+        /* 动画效果 */
+        .fade-enter-active, .fade-leave-active {
+            transition: opacity 0.3s ease;
+        }
+        
+        .fade-enter-from, .fade-leave-to {
+            opacity: 0;
+        }
+        
+        .slide-enter-active, .slide-leave-active {
+            transition: all 0.3s ease;
+        }
+        
+        .slide-enter-from {
+            transform: translateX(100%);
+        }
+        
+        .slide-leave-to {
+            transform: translateX(-100%);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔄 练习题4：动态组件</h1>
+            <p>学习Vue3中动态组件的使用和keep-alive缓存</p>
+        </div>
+        
+        <div class="exercise">
+            <h3>📋 练习1：标签页切换（基础动态组件）</h3>
+            <div class="requirements">
+                <h4>任务目标：</h4>
+                <ul>
+                    <li>使用 <code>&lt;component :is="componentName"&gt;</code> 实现动态组件</li>
+                    <li>创建多个标签页组件：首页、关于我们、联系我们</li>
+                    <li>实现标签页切换功能</li>
+                    <li>添加切换动画效果</li>
+                </ul>
+            </div>
+            
+            <div class="demo-area" id="app">
+                <div class="tab-container">
+                    <div class="tab-nav">
+                        <button 
+                            v-for="tab in tabs" 
+                            :key="tab.name"
+                            @click="currentTab = tab.name"
+                            :class="['tab-item', { active: currentTab === tab.name }]">
+                            {{ tab.icon }} {{ tab.label }}
+                        </button>
+                    </div>
+                    
+                    <div class="tab-content">
+                        <transition name="fade" mode="out-in">
+                            <component :is="currentTab" :key="currentTab"></component>
+                        </transition>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="exercise">
+            <h3>🔧 练习2：工具栏组件（keep-alive缓存）</h3>
+            <div class="requirements">
+                <h4>扩展任务：</h4>
+                <ul>
+                    <li>创建多个工具组件：文本编辑器、图表工具、设置面板</li>
+                    <li>使用 <code>&lt;keep-alive&gt;</code> 保持组件状态</li>
+                    <li>实现组件的激活和停用生命周期</li>
+                    <li>添加组件切换的过渡效果</li>
+                </ul>
+            </div>
+            
+            <div class="demo-area">
+                <div class="toolbar">
+                    <span class="toolbar-label">选择工具：</span>
+                    <div class="toolbar-group">
+                        <button 
+                            v-for="tool in tools" 
+                            :key="tool.name"
+                            @click="currentTool = tool.name"
+                            :class="['btn', tool.color, { active: currentTool === tool.name }]">
+                            {{ tool.icon }} {{ tool.label }}
+                        </button>
+                    </div>
+                    
+                    <div class="toolbar-group">
+                        <span class="toolbar-label">缓存：</span>
+                        <label class="switch">
+                            <input type="checkbox" v-model="enableCache">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="component-card">
+                    <transition name="slide" mode="out-in">
+                        <keep-alive v-if="enableCache">
+                            <component :is="currentTool" :key="currentTool"></component>
+                        </keep-alive>
+                        <component v-else :is="currentTool" :key="currentTool + '-no-cache'"></component>
+                    </transition>
+                </div>
+                
+                <div class="tips">
+                    <h4>💡 缓存说明</h4>
+                    <ul>
+                        <li><strong>开启缓存：</strong>组件状态会被保留，切换回来时数据不会丢失</li>
+                        <li><strong>关闭缓存：</strong>每次切换都会重新创建组件，数据会重置</li>
+                        <li><strong>生命周期：</strong>缓存组件会触发 activated 和 deactivated 钩子</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="exercise">
+            <h3>🎯 练习3：动态表单（条件渲染组件）</h3>
+            <div class="requirements">
+                <h4>高级任务：</h4>
+                <ul>
+                    <li>根据表单类型动态渲染不同的表单组件</li>
+                    <li>支持用户信息、产品信息、订单信息等表单</li>
+                    <li>实现表单验证和数据收集</li>
+                    <li>使用 <code>v-if</code> 和动态组件的组合</li>
+                </ul>
+            </div>
+            
+            <div class="demo-area">
+                <div class="toolbar">
+                    <span class="toolbar-label">表单类型：</span>
+                    <div class="toolbar-group">
+                        <button 
+                            v-for="form in forms" 
+                            :key="form.name"
+                            @click="currentForm = form.name"
+                            :class="['btn', 'btn-info', { active: currentForm === form.name }]">
+                            {{ form.icon }} {{ form.label }}
+                        </button>
+                    </div>
+                    
+                    <div class="toolbar-group">
+                        <button @click="resetForm" class="btn btn-warning">🔄 重置表单</button>
+                        <button @click="submitForm" class="btn btn-success">✅ 提交表单</button>
+                    </div>
+                </div>
+                
+                <div class="component-card">
+                    <transition name="fade" mode="out-in">
+                        <component 
+                            :is="currentForm" 
+                            :key="formKey"
+                            v-model="formData[currentForm]"
+                            @update:modelValue="updateFormData">
+                        </component>
+                    </transition>
+                </div>
+                
+                <div class="component-card" v-if="Object.keys(submittedData).length > 0">
+                    <h4>📊 提交的数据</h4>
+                    <pre style="background: #f8f9fa; padding: 15px; border-radius: 8px; overflow-x: auto;">{{ JSON.stringify(submittedData, null, 2) }}</pre>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tips">
+            <h4>💡 学习提示</h4>
+            <ul>
+                <li><strong>动态组件：</strong>使用 &lt;component :is="componentName"&gt; 动态切换组件</li>
+                <li><strong>keep-alive：</strong>缓存组件实例，避免重复创建和销毁</li>
+                <li><strong>生命周期：</strong>缓存组件有 activated 和 deactivated 钩子</li>
+                <li><strong>过渡动画：</strong>配合 &lt;transition&gt; 实现组件切换动画</li>
+                <li><strong>组件通信：</strong>动态组件同样支持 props 和 events</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        const { createApp } = Vue;
+        
+        // 标签页组件
+        const HomePage = {
+            template: `
+                <div class="component-card">
+                    <h4>🏠 欢迎来到首页</h4>
+                    <p>这里是网站的主页内容。你可以在这里了解我们的最新动态和产品信息。</p>
+                    <div class="chart-container">
+                        <h5>📈 网站统计</h5>
+                        <div class="chart-bar">
+                            <span class="chart-label">访问量</span>
+                            <div class="chart-progress">
+                                <div class="chart-fill" style="width: 85%;"></div>
+                            </div>
+                            <span class="chart-value">85%</span>
+                        </div>
+                        <div class="chart-bar">
+                            <span class="chart-label">用户数</span>
+                            <div class="chart-progress">
+                                <div class="chart-fill" style="width: 72%;"></div>
+                            </div>
+                            <span class="chart-value">72%</span>
+                        </div>
+                        <div class="chart-bar">
+                            <span class="chart-label">转化率</span>
+                            <div class="chart-progress">
+                                <div class="chart-fill" style="width: 68%;"></div>
+                            </div>
+                            <span class="chart-value">68%</span>
+                        </div>
+                    </div>
+                </div>
+            `
+        };
+        
+        const AboutPage = {
+            template: `
+                <div class="component-card">
+                    <h4>ℹ️ 关于我们</h4>
+                    <p>我们是一家专注于Vue.js技术的团队，致力于为开发者提供最好的学习资源和工具。</p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0;">
+                        <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; text-align: center;">
+                            <h5>🎯 我们的使命</h5>
+                            <p>让Vue.js学习变得简单有趣</p>
+                        </div>
+                        <div style="background: #f3e5f5; padding: 15px; border-radius: 8px; text-align: center;">
+                            <h5>👥 团队规模</h5>
+                            <p>50+ 专业开发者</p>
+                        </div>
+                        <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; text-align: center;">
+                            <h5>🏆 项目经验</h5>
+                            <p>100+ 成功案例</p>
+                        </div>
+                    </div>
+                </div>
+            `
+        };
+        
+        const ContactPage = {
+            template: `
+                <div class="component-card">
+                    <h4>📞 联系我们</h4>
+                    <p>如果你有任何问题或建议，欢迎通过以下方式联系我们：</p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 20px 0;">
+                        <div style="background: #fff3e0; padding: 20px; border-radius: 8px;">
+                            <h5>📧 邮箱联系</h5>
+                            <p><strong>技术支持：</strong> support@vue-learning.com</p>
+                            <p><strong>商务合作：</strong> business@vue-learning.com</p>
+                        </div>
+                        <div style="background: #f3e5f5; padding: 20px; border-radius: 8px;">
+                            <h5>🏢 办公地址</h5>
+                            <p><strong>总部：</strong> 北京市朝阳区科技园</p>
+                            <p><strong>分部：</strong> 上海市浦东新区软件园</p>
+                        </div>
+                        <div style="background: #e8f5e8; padding: 20px; border-radius: 8px;">
+                            <h5>⏰ 工作时间</h5>
+                            <p><strong>周一至周五：</strong> 9:00 - 18:00</p>
+                            <p><strong>技术支持：</strong> 7×24小时</p>
+                        </div>
+                    </div>
+                </div>
+            `
+        };
+        
+        // 工具组件
+        const TextEditor = {
+            data() {
+                return {
+                    content: '这是一个文本编辑器，你可以在这里输入内容...',
+                    wordCount: 0,
+                    isActive: false
+                }
+            },
+            template: `
+                <div class="component-card">
+                    <h4>📝 文本编辑器 {{ isActive ? '(活跃)' : '(非活跃)' }}</h4>
+                    <div class="form-group">
+                        <label>内容编辑：</label>
+                        <textarea 
+                            v-model="content" 
+                            @input="updateWordCount"
+                            class="form-control" 
+                            rows="8" 
+                            placeholder="在这里输入你的内容..."></textarea>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                        <span>字数统计: {{ wordCount }} 字</span>
+                        <div>
+                            <button @click="clearContent" class="btn btn-warning">清空</button>
+                            <button @click="saveContent" class="btn btn-success">保存</button>
+                        </div>
+                    </div>
+                </div>
+            `,
+            methods: {
+                updateWordCount() {
+                    this.wordCount = this.content.length;
+                },
+                clearContent() {
+                    this.content = '';
+                    this.wordCount = 0;
+                },
+                saveContent() {
+                    alert('内容已保存！');
+                }
+            },
+            activated() {
+                this.isActive = true;
+                console.log('文本编辑器被激活');
+            },
+            deactivated() {
+                this.isActive = false;
+                console.log('文本编辑器被停用');
+            },
+            mounted() {
+                this.updateWordCount();
+            }
+        };
+        
+        const ChartTool = {
+            data() {
+                return {
+                    chartData: [
+                        { label: 'Vue.js', value: 85, color: '#4CAF50' },
+                        { label: 'React', value: 72, color: '#2196F3' },
+                        { label: 'Angular', value: 58, color: '#FF9800' },
+                        { label: 'Svelte', value: 45, color: '#9C27B0' }
+                    ],
+                    isActive: false
+                }
+            },
+            template: `
+                <div class="component-card">
+                    <h4>📊 图表工具 {{ isActive ? '(活跃)' : '(非活跃)' }}</h4>
+                    <div class="chart-container">
+                        <h5>前端框架使用率统计</h5>
+                        <div v-for="item in chartData" :key="item.label" class="chart-bar">
+                            <span class="chart-label">{{ item.label }}</span>
+                            <div class="chart-progress">
+                                <div 
+                                    class="chart-fill" 
+                                    :style="{ width: item.value + '%', background: item.color }"></div>
+                            </div>
+                            <span class="chart-value">{{ item.value }}%</span>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <button @click="refreshData" class="btn btn-primary">🔄 刷新数据</button>
+                        <button @click="exportChart" class="btn btn-success">📥 导出图表</button>
+                    </div>
+                </div>
+            `,
+            methods: {
+                refreshData() {
+                    this.chartData.forEach(item => {
+                        item.value = Math.floor(Math.random() * 100);
+                    });
+                },
+                exportChart() {
+                    alert('图表导出功能（模拟）');
+                }
+            },
+            activated() {
+                this.isActive = true;
+                console.log('图表工具被激活');
+            },
+            deactivated() {
+                this.isActive = false;
+                console.log('图表工具被停用');
+            }
+        };
+        
+        const SettingsPanel = {
+            data() {
+                return {
+                    settings: {
+                        notifications: true,
+                        darkMode: false,
+                        autoSave: true,
+                        language: 'zh-CN'
+                    },
+                    isActive: false
+                }
+            },
+            template: `
+                <div class="component-card">
+                    <h4>⚙️ 设置面板 {{ isActive ? '(活跃)' : '(非活跃)' }}</h4>
+                    <div class="settings-panel">
+                        <div class="settings-row">
+                            <span class="settings-label">🔔 通知提醒</span>
+                            <label class="switch">
+                                <input type="checkbox" v-model="settings.notifications">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="settings-row">
+                            <span class="settings-label">🌙 深色模式</span>
+                            <label class="switch">
+                                <input type="checkbox" v-model="settings.darkMode">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="settings-row">
+                            <span class="settings-label">💾 自动保存</span>
+                            <label class="switch">
+                                <input type="checkbox" v-model="settings.autoSave">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="settings-row">
+                            <span class="settings-label">🌐 语言设置</span>
+                            <select v-model="settings.language" class="form-control" style="width: auto;">
+                                <option value="zh-CN">中文</option>
+                                <option value="en-US">English</option>
+                                <option value="ja-JP">日本語</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <button @click="resetSettings" class="btn btn-warning">🔄 重置设置</button>
+                        <button @click="saveSettings" class="btn btn-success">💾 保存设置</button>
+                    </div>
+                </div>
+            `,
+            methods: {
+                resetSettings() {
+                    this.settings = {
+                        notifications: true,
+                        darkMode: false,
+                        autoSave: true,
+                        language: 'zh-CN'
+                    };
+                },
+                saveSettings() {
+                    alert('设置已保存！');
+                }
+            },
+            activated() {
+                this.isActive = true;
+                console.log('设置面板被激活');
+            },
+            deactivated() {
+                this.isActive = false;
+                console.log('设置面板被停用');
+            }
+        };
+        
+        // 表单组件
+        const UserForm = {
+            props: ['modelValue'],
+            emits: ['update:modelValue'],
+            data() {
+                return {
+                    formData: {
+                        name: '',
+                        email: '',
+                        phone: '',
+                        gender: 'male',
+                        birthday: '',
+                        bio: ''
+                    }
+                }
+            },
+            template: `
+                <div>
+                    <h4>👤 用户信息表单</h4>
+                    <div class="form-group">
+                        <label>姓名：</label>
+                        <input v-model="formData.name" @input="updateData" class="form-control" placeholder="请输入姓名">
+                    </div>
+                    <div class="form-group">
+                        <label>邮箱：</label>
+                        <input v-model="formData.email" @input="updateData" type="email" class="form-control" placeholder="请输入邮箱">
+                    </div>
+                    <div class="form-group">
+                        <label>电话：</label>
+                        <input v-model="formData.phone" @input="updateData" class="form-control" placeholder="请输入电话号码">
+                    </div>
+                    <div class="form-group">
+                        <label>性别：</label>
+                        <select v-model="formData.gender" @change="updateData" class="form-control">
+                            <option value="male">男</option>
+                            <option value="female">女</option>
+                            <option value="other">其他</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>生日：</label>
+                        <input v-model="formData.birthday" @input="updateData" type="date" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>个人简介：</label>
+                        <textarea v-model="formData.bio" @input="updateData" class="form-control" rows="3" placeholder="请输入个人简介"></textarea>
+                    </div>
+                </div>
+            `,
+            methods: {
+                updateData() {
+                    this.$emit('update:modelValue', this.formData);
+                }
+            },
+            mounted() {
+                if (this.modelValue) {
+                    this.formData = { ...this.modelValue };
+                }
+            }
+        };
+        
+        const ProductForm = {
+            props: ['modelValue'],
+            emits: ['update:modelValue'],
+            data() {
+                return {
+                    formData: {
+                        name: '',
+                        category: 'electronics',
+                        price: '',
+                        description: '',
+                        inStock: true,
+                        tags: ''
+                    }
+                }
+            },
+            template: `
+                <div>
+                    <h4>📦 产品信息表单</h4>
+                    <div class="form-group">
+                        <label>产品名称：</label>
+                        <input v-model="formData.name" @input="updateData" class="form-control" placeholder="请输入产品名称">
+                    </div>
+                    <div class="form-group">
+                        <label>产品分类：</label>
+                        <select v-model="formData.category" @change="updateData" class="form-control">
+                            <option value="electronics">电子产品</option>
+                            <option value="clothing">服装</option>
+                            <option value="books">图书</option>
+                            <option value="home">家居用品</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>价格：</label>
+                        <input v-model="formData.price" @input="updateData" type="number" class="form-control" placeholder="请输入价格">
+                    </div>
+                    <div class="form-group">
+                        <label>产品描述：</label>
+                        <textarea v-model="formData.description" @input="updateData" class="form-control" rows="4" placeholder="请输入产品描述"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input v-model="formData.inStock" @change="updateData" type="checkbox"> 现货供应
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>标签（用逗号分隔）：</label>
+                        <input v-model="formData.tags" @input="updateData" class="form-control" placeholder="例如：热销,推荐,新品">
+                    </div>
+                </div>
+            `,
+            methods: {
+                updateData() {
+                    this.$emit('update:modelValue', this.formData);
+                }
+            },
+            mounted() {
+                if (this.modelValue) {
+                    this.formData = { ...this.modelValue };
+                }
+            }
+        };
+        
+        const OrderForm = {
+            props: ['modelValue'],
+            emits: ['update:modelValue'],
+            data() {
+                return {
+                    formData: {
+                        orderNumber: '',
+                        customerName: '',
+                        customerEmail: '',
+                        shippingAddress: '',
+                        paymentMethod: 'credit_card',
+                        notes: ''
+                    }
+                }
+            },
+            template: `
+                <div>
+                    <h4>📋 订单信息表单</h4>
+                    <div class="form-group">
+                        <label>订单号：</label>
+                        <input v-model="formData.orderNumber" @input="updateData" class="form-control" placeholder="请输入订单号">
+                    </div>
+                    <div class="form-group">
+                        <label>客户姓名：</label>
+                        <input v-model="formData.customerName" @input="updateData" class="form-control" placeholder="请输入客户姓名">
+                    </div>
+                    <div class="form-group">
+                        <label>客户邮箱：</label>
+                        <input v-model="formData.customerEmail" @input="updateData" type="email" class="form-control" placeholder="请输入客户邮箱">
+                    </div>
+                    <div class="form-group">
+                        <label>收货地址：</label>
+                        <textarea v-model="formData.shippingAddress" @input="updateData" class="form-control" rows="3" placeholder="请输入详细收货地址"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>支付方式：</label>
+                        <select v-model="formData.paymentMethod" @change="updateData" class="form-control">
+                            <option value="credit_card">信用卡</option>
+                            <option value="debit_card">借记卡</option>
+                            <option value="paypal">PayPal</option>
+                            <option value="alipay">支付宝</option>
+                            <option value="wechat_pay">微信支付</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>备注：</label>
+                        <textarea v-model="formData.notes" @input="updateData" class="form-control" rows="2" placeholder="请输入订单备注"></textarea>
+                    </div>
+                </div>
+            `,
+            methods: {
+                updateData() {
+                    this.$emit('update:modelValue', this.formData);
+                }
+            },
+            mounted() {
+                if (this.modelValue) {
+                    this.formData = { ...this.modelValue };
+                }
+            }
+        };
+        
+        // 创建主应用
+        createApp({
+            components: {
+                HomePage,
+                AboutPage,
+                ContactPage,
+                TextEditor,
+                ChartTool,
+                SettingsPanel,
+                UserForm,
+                ProductForm,
+                OrderForm
+            },
+            data() {
+                return {
+                    // 标签页
+                    currentTab: 'HomePage',
+                    tabs: [
+                        { name: 'HomePage', label: '首页', icon: '🏠' },
+                        { name: 'AboutPage', label: '关于我们', icon: 'ℹ️' },
+                        { name: 'ContactPage', label: '联系我们', icon: '📞' }
+                    ],
+                    
+                    // 工具
+                    currentTool: 'TextEditor',
+                    enableCache: true,
+                    tools: [
+                        { name: 'TextEditor', label: '文本编辑', icon: '📝', color: 'btn-primary' },
+                        { name: 'ChartTool', label: '图表工具', icon: '📊', color: 'btn-success' },
+                        { name: 'SettingsPanel', label: '设置面板', icon: '⚙️', color: 'btn-secondary' }
+                    ],
+                    
+                    // 表单
+                    currentForm: 'UserForm',
+                    formKey: 0,
+                    forms: [
+                        { name: 'UserForm', label: '用户信息', icon: '👤' },
+                        { name: 'ProductForm', label: '产品信息', icon: '📦' },
+                        { name: 'OrderForm', label: '订单信息', icon: '📋' }
+                    ],
+                    formData: {
+                        UserForm: {},
+                        ProductForm: {},
+                        OrderForm: {}
+                    },
+                    submittedData: {}
+                }
+            },
+            methods: {
+                updateFormData(data) {
+                    this.formData[this.currentForm] = data;
+                },
+                resetForm() {
+                    this.formData[this.currentForm] = {};
+                    this.formKey++; // 强制重新渲染组件
+                },
+                submitForm() {
+                    const data = this.formData[this.currentForm];
+                    if (Object.keys(data).length === 0) {
+                        alert('请先填写表单数据！');
+                        return;
+                    }
+                    this.submittedData = {
+                        formType: this.currentForm,
+                        data: data,
+                        timestamp: new Date().toLocaleString()
+                    };
+                    alert('表单提交成功！');
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

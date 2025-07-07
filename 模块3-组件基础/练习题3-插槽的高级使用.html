@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>练习题3 - Vue3插槽的高级使用</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .header h1 {
+            color: #333;
+            margin: 0;
+            font-size: 2.5em;
+        }
+        
+        .header p {
+            color: #666;
+            margin: 10px 0 0 0;
+            font-size: 1.1em;
+        }
+        
+        .exercise {
+            margin-bottom: 40px;
+            padding: 25px;
+            border: 2px solid #e0f2f1;
+            border-radius: 10px;
+            background: #fafafa;
+        }
+        
+        .exercise h3 {
+            color: #00695c;
+            margin-top: 0;
+            font-size: 1.4em;
+        }
+        
+        .requirements {
+            background: #fff3e0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #ff9800;
+        }
+        
+        .requirements h4 {
+            margin: 0 0 10px 0;
+            color: #e65100;
+        }
+        
+        .requirements ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .demo-area {
+            border: 2px dashed #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            background: white;
+            min-height: 100px;
+        }
+        
+        /* 模态框样式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow: hidden;
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.5em;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+        
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .modal-body {
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            background: #f8f9fa;
+        }
+        
+        /* 卡片布局样式 */
+        .layout-card {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 15px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .layout-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .layout-header {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .layout-header h3 {
+            margin: 0;
+            font-size: 1.5em;
+        }
+        
+        .layout-sidebar {
+            background: #f8f9fa;
+            padding: 20px;
+            border-right: 1px solid #dee2e6;
+        }
+        
+        .layout-content {
+            padding: 20px;
+            flex: 1;
+        }
+        
+        .layout-footer {
+            background: #343a40;
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+        }
+        
+        .layout-body {
+            display: flex;
+            min-height: 200px;
+        }
+        
+        /* 数据表格样式 */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .data-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        .data-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* 按钮样式 */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #1e7e34;
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #545b62;
+            transform: translateY(-2px);
+        }
+        
+        /* 控制面板 */
+        .controls {
+            background: #e8f5e8;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .controls label {
+            font-weight: bold;
+            color: #2e7d32;
+        }
+        
+        .controls select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        /* 提示样式 */
+        .tips {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .tips h4 {
+            margin: 0 0 10px 0;
+            color: #1565c0;
+        }
+        
+        .tips ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .tips li {
+            margin: 5px 0;
+            color: #1976d2;
+        }
+        
+        /* 用户头像 */
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #007bff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎭 练习题3：插槽的高级使用</h1>
+            <p>学习Vue3中默认插槽、具名插槽和作用域插槽的使用</p>
+        </div>
+        
+        <div class="exercise">
+            <h3>📝 练习1：模态框组件（具名插槽）</h3>
+            <div class="requirements">
+                <h4>任务目标：</h4>
+                <ul>
+                    <li>创建一个 <code>Modal</code> 组件，使用具名插槽</li>
+                    <li>包含 <code>header</code>、<code>default</code>、<code>footer</code> 三个插槽</li>
+                    <li>支持通过props控制显示/隐藏</li>
+                    <li>实现点击遮罩层关闭功能</li>
+                </ul>
+            </div>
+            
+            <div class="demo-area" id="app">
+                <div class="controls">
+                    <button @click="showModal = true" class="btn btn-primary">打开模态框</button>
+                    <button @click="showConfirm = true" class="btn btn-success">确认对话框</button>
+                    <button @click="showForm = true" class="btn btn-secondary">表单对话框</button>
+                </div>
+                
+                <!-- 基础模态框 -->
+                <modal :show="showModal" @close="showModal = false">
+                    <template #header>
+                        <h3>🎉 欢迎使用Vue3</h3>
+                    </template>
+                    
+                    <template #default>
+                        <p>这是一个使用具名插槽的模态框组件。</p>
+                        <p>你可以在不同的插槽中放置不同的内容：</p>
+                        <ul>
+                            <li>header插槽：放置标题</li>
+                            <li>default插槽：放置主要内容</li>
+                            <li>footer插槽：放置操作按钮</li>
+                        </ul>
+                    </template>
+                    
+                    <template #footer>
+                        <button @click="showModal = false" class="btn btn-secondary">取消</button>
+                        <button @click="showModal = false" class="btn btn-primary">确定</button>
+                    </template>
+                </modal>
+                
+                <!-- 确认对话框 -->
+                <modal :show="showConfirm" @close="showConfirm = false">
+                    <template #header>
+                        <h3>⚠️ 确认操作</h3>
+                    </template>
+                    
+                    <template #default>
+                        <p>你确定要执行这个操作吗？此操作不可撤销。</p>
+                    </template>
+                    
+                    <template #footer>
+                        <button @click="showConfirm = false" class="btn btn-secondary">取消</button>
+                        <button @click="confirmAction" class="btn btn-danger">确认删除</button>
+                    </template>
+                </modal>
+                
+                <!-- 表单对话框 -->
+                <modal :show="showForm" @close="showForm = false">
+                    <template #header>
+                        <h3>📝 添加用户</h3>
+                    </template>
+                    
+                    <template #default>
+                        <div style="margin: 15px 0;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">姓名：</label>
+                            <input v-model="formData.name" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        </div>
+                        <div style="margin: 15px 0;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">邮箱：</label>
+                            <input v-model="formData.email" type="email" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        </div>
+                        <div style="margin: 15px 0;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">角色：</label>
+                            <select v-model="formData.role" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                                <option value="user">普通用户</option>
+                                <option value="admin">管理员</option>
+                                <option value="editor">编辑者</option>
+                            </select>
+                        </div>
+                    </template>
+                    
+                    <template #footer>
+                        <button @click="showForm = false" class="btn btn-secondary">取消</button>
+                        <button @click="submitForm" class="btn btn-success">保存</button>
+                    </template>
+                </modal>
+            </div>
+        </div>
+        
+        <div class="exercise">
+            <h3>🔧 练习2：布局组件（多个具名插槽）</h3>
+            <div class="requirements">
+                <h4>扩展任务：</h4>
+                <ul>
+                    <li>创建一个 <code>PageLayout</code> 组件</li>
+                    <li>包含 <code>header</code>、<code>sidebar</code>、<code>content</code>、<code>footer</code> 插槽</li>
+                    <li>支持通过props控制是否显示侧边栏</li>
+                    <li>实现响应式布局</li>
+                </ul>
+            </div>
+            
+            <div class="demo-area" id="app2">
+                <div class="controls">
+                    <label>布局模式：</label>
+                    <select v-model="layoutMode">
+                        <option value="with-sidebar">带侧边栏</option>
+                        <option value="no-sidebar">无侧边栏</option>
+                        <option value="full-width">全宽布局</option>
+                    </select>
+                </div>
+                
+                <page-layout :show-sidebar="layoutMode === 'with-sidebar'">
+                    <template #header>
+                        <h3>🏠 网站标题</h3>
+                        <p style="margin: 5px 0 0 0; opacity: 0.8;">这是页面头部区域</p>
+                    </template>
+                    
+                    <template #sidebar v-if="layoutMode === 'with-sidebar'">
+                        <h4>📋 导航菜单</h4>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="margin: 10px 0;"><a href="#" style="text-decoration: none; color: #333;">🏠 首页</a></li>
+                            <li style="margin: 10px 0;"><a href="#" style="text-decoration: none; color: #333;">📊 数据分析</a></li>
+                            <li style="margin: 10px 0;"><a href="#" style="text-decoration: none; color: #333;">👥 用户管理</a></li>
+                            <li style="margin: 10px 0;"><a href="#" style="text-decoration: none; color: #333;">⚙️ 系统设置</a></li>
+                        </ul>
+                    </template>
+                    
+                    <template #content>
+                        <h4>📄 主要内容区域</h4>
+                        <p>这里是页面的主要内容。当前布局模式：<strong>{{ layoutMode }}</strong></p>
+                        <p>你可以在这里放置任何内容，比如文章、表格、图表等。</p>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                            <h5>💡 插槽的优势</h5>
+                            <ul>
+                                <li>内容分发：将内容分发到组件的不同位置</li>
+                                <li>灵活性：同一个组件可以展示不同的内容</li>
+                                <li>复用性：组件结构固定，内容可变</li>
+                                <li>可维护性：结构和内容分离，便于维护</li>
+                            </ul>
+                        </div>
+                    </template>
+                    
+                    <template #footer>
+                        <p style="margin: 0;">© 2024 Vue3学习项目 | 插槽练习示例</p>
+                    </template>
+                </page-layout>
+            </div>
+        </div>
+        
+        <div class="exercise">
+            <h3>🎯 练习3：数据表格（作用域插槽）</h3>
+            <div class="requirements">
+                <h4>高级任务：</h4>
+                <ul>
+                    <li>创建一个 <code>DataTable</code> 组件，使用作用域插槽</li>
+                    <li>向插槽传递行数据、索引等信息</li>
+                    <li>支持自定义列的渲染方式</li>
+                    <li>实现排序、筛选等功能</li>
+                </ul>
+            </div>
+            
+            <div class="demo-area" id="app3">
+                <data-table :data="users" :columns="columns">
+                    <template #avatar="{ user }">
+                        <div class="user-info">
+                            <div class="user-avatar">{{ user.name.charAt(0) }}</div>
+                            <div>
+                                <div style="font-weight: bold;">{{ user.name }}</div>
+                                <div style="font-size: 0.9em; color: #666;">{{ user.email }}</div>
+                            </div>
+                        </div>
+                    </template>
+                    
+                    <template #status="{ user }">
+                        <span class="status-badge" :class="{
+                            'status-active': user.status === 'active',
+                            'status-inactive': user.status === 'inactive',
+                            'status-pending': user.status === 'pending'
+                        }">
+                            {{ getStatusText(user.status) }}
+                        </span>
+                    </template>
+                    
+                    <template #actions="{ user, index }">
+                        <button @click="editUser(user, index)" class="btn btn-primary" style="margin-right: 5px; padding: 5px 10px; font-size: 12px;">编辑</button>
+                        <button @click="deleteUser(index)" class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;">删除</button>
+                    </template>
+                </data-table>
+            </div>
+        </div>
+        
+        <div class="tips">
+            <h4>💡 学习提示</h4>
+            <ul>
+                <li><strong>默认插槽：</strong>使用 &lt;slot&gt;&lt;/slot&gt; 定义，内容放在组件标签内</li>
+                <li><strong>具名插槽：</strong>使用 &lt;slot name="名称"&gt;&lt;/slot&gt; 定义，通过 #名称 或 v-slot:名称 使用</li>
+                <li><strong>作用域插槽：</strong>子组件向插槽传递数据，父组件可以访问这些数据</li>
+                <li><strong>插槽简写：</strong>Vue3中 v-slot:header 可以简写为 #header</li>
+                <li><strong>动态插槽：</strong>可以使用变量作为插槽名称，如 #[dynamicSlotName]</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        const { createApp } = Vue;
+        
+        // 模态框组件
+        const Modal = {
+            props: {
+                show: {
+                    type: Boolean,
+                    default: false
+                }
+            },
+            emits: ['close'],
+            template: `
+                <div v-if="show" class="modal-overlay" @click="handleOverlayClick">
+                    <div class="modal-container" @click.stop>
+                        <div class="modal-header">
+                            <slot name="header">
+                                <h3>默认标题</h3>
+                            </slot>
+                            <button @click="$emit('close')" class="modal-close">×</button>
+                        </div>
+                        <div class="modal-body">
+                            <slot></slot>
+                        </div>
+                        <div class="modal-footer" v-if="$slots.footer">
+                            <slot name="footer"></slot>
+                        </div>
+                    </div>
+                </div>
+            `,
+            methods: {
+                handleOverlayClick() {
+                    this.$emit('close');
+                }
+            }
+        };
+        
+        // 页面布局组件
+        const PageLayout = {
+            props: {
+                showSidebar: {
+                    type: Boolean,
+                    default: true
+                }
+            },
+            template: `
+                <div class="layout-card">
+                    <div class="layout-header">
+                        <slot name="header">
+                            <h3>默认标题</h3>
+                        </slot>
+                    </div>
+                    <div class="layout-body">
+                        <div v-if="showSidebar && $slots.sidebar" class="layout-sidebar">
+                            <slot name="sidebar"></slot>
+                        </div>
+                        <div class="layout-content">
+                            <slot name="content">
+                                <p>默认内容区域</p>
+                            </slot>
+                        </div>
+                    </div>
+                    <div class="layout-footer" v-if="$slots.footer">
+                        <slot name="footer">
+                            <p>默认页脚</p>
+                        </slot>
+                    </div>
+                </div>
+            `
+        };
+        
+        // 数据表格组件
+        const DataTable = {
+            props: {
+                data: {
+                    type: Array,
+                    required: true
+                },
+                columns: {
+                    type: Array,
+                    required: true
+                }
+            },
+            template: `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th v-for="column in columns" :key="column.key">
+                                {{ column.title }}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(item, index) in data" :key="index">
+                            <td v-for="column in columns" :key="column.key">
+                                <slot 
+                                    v-if="column.slot" 
+                                    :name="column.slot" 
+                                    :user="item" 
+                                    :index="index"
+                                    :column="column">
+                                    {{ item[column.key] }}
+                                </slot>
+                                <span v-else>{{ item[column.key] }}</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            `
+        };
+        
+        // 创建主应用 - 练习1
+        createApp({
+            components: {
+                Modal
+            },
+            data() {
+                return {
+                    // 模态框控制
+                    showModal: false,
+                    showConfirm: false,
+                    showForm: false,
+                    
+                    // 表单数据
+                    formData: {
+                        name: '',
+                        email: '',
+                        role: 'user'
+                    }
+                }
+            },
+            methods: {
+                confirmAction() {
+                    alert('操作已确认！');
+                    this.showConfirm = false;
+                },
+                submitForm() {
+                    if (this.formData.name && this.formData.email) {
+                        alert(`用户添加成功！姓名：${this.formData.name}，邮箱：${this.formData.email}，角色：${this.formData.role}`);
+                        this.formData = { name: '', email: '', role: 'user' };
+                        this.showForm = false;
+                    } else {
+                        alert('请填写完整信息！');
+                    }
+                }
+            }
+        }).mount('#app');
+        
+        // 创建练习2应用 - 布局组件
+        createApp({
+            components: {
+                PageLayout
+            },
+            data() {
+                return {
+                    // 布局模式
+                    layoutMode: 'with-sidebar'
+                }
+            }
+        }).mount('#app2');
+        
+        // 创建练习3应用 - 数据表格
+        createApp({
+            components: {
+                DataTable
+            },
+            data() {
+                return {
+                    // 用户数据
+                    users: [
+                        { id: 1, name: '张三', email: 'zhangsan@example.com', role: '管理员', status: 'active' },
+                        { id: 2, name: '李四', email: 'lisi@example.com', role: '编辑者', status: 'active' },
+                        { id: 3, name: '王五', email: 'wangwu@example.com', role: '用户', status: 'inactive' },
+                        { id: 4, name: '赵六', email: 'zhaoliu@example.com', role: '用户', status: 'pending' }
+                    ],
+                    
+                    // 表格列配置
+                    columns: [
+                        { key: 'avatar', title: '用户信息', slot: 'avatar' },
+                        { key: 'role', title: '角色' },
+                        { key: 'status', title: '状态', slot: 'status' },
+                        { key: 'actions', title: '操作', slot: 'actions' }
+                    ]
+                }
+            },
+            methods: {
+                getStatusText(status) {
+                    const statusMap = {
+                        'active': '活跃',
+                        'inactive': '非活跃',
+                        'pending': '待审核'
+                    };
+                    return statusMap[status] || status;
+                },
+                editUser(user, index) {
+                    alert(`编辑用户：${user.name}`);
+                },
+                deleteUser(index) {
+                    if (confirm('确定要删除这个用户吗？')) {
+                        this.users.splice(index, 1);
+                    }
+                }
+            }
+        }).mount('#app3');
+    </script>
+</body>
+</html>

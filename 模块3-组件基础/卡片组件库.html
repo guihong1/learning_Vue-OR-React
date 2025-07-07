@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue3组件基础 - 可复用的卡片组件库</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .section {
+            margin-bottom: 50px;
+        }
+        
+        .section-title {
+            color: white;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        /* 基础卡片样式 */
+        .base-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .base-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+        
+        .card-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        .card-footer {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        /* 用户卡片样式 */
+        .user-card {
+            text-align: center;
+        }
+        
+        .user-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            border: 4px solid white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .user-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+        
+        .user-role {
+            color: #7f8c8d;
+            margin-bottom: 15px;
+        }
+        
+        .user-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #3498db;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            color: #7f8c8d;
+        }
+        
+        /* 产品卡片样式 */
+        .product-card {
+            position: relative;
+        }
+        
+        .product-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .product-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #e74c3c;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        
+        .product-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .product-description {
+            color: #7f8c8d;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        
+        .product-price {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .price {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        
+        .original-price {
+            text-decoration: line-through;
+            color: #95a5a6;
+            margin-left: 10px;
+        }
+        
+        /* 统计卡片样式 */
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+        }
+        
+        .stat-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            opacity: 0.8;
+        }
+        
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .stat-title {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .stat-change {
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+        
+        .positive {
+            color: #2ecc71;
+        }
+        
+        .negative {
+            color: #e74c3c;
+        }
+        
+        /* 按钮样式 */
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+        
+        /* 控制面板样式 */
+        .control-panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .control-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .control-group label {
+            color: white;
+            font-weight: bold;
+            min-width: 100px;
+        }
+        
+        .control-group input,
+        .control-group select {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            min-width: 150px;
+        }
+        
+        /* 动态组件切换 */
+        .tab-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .tab-button {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        
+        .tab-button.active {
+            background: white;
+            color: #667eea;
+        }
+        
+        .tab-content {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 200px;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .control-group label {
+                min-width: auto;
+            }
+            
+            .tab-buttons {
+                flex-direction: column;
+            }
+        }
+        
+        /* 动画效果 */
+        .fade-enter-active, .fade-leave-active {
+            transition: opacity 0.5s;
+        }
+        
+        .fade-enter-from, .fade-leave-to {
+            opacity: 0;
+        }
+        
+        .slide-enter-active, .slide-leave-active {
+            transition: all 0.3s ease;
+        }
+        
+        .slide-enter-from {
+            transform: translateX(-100%);
+        }
+        
+        .slide-leave-to {
+            transform: translateX(100%);
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="app-container">
+        <div class="header">
+            <h1>🎨 可复用的卡片组件库</h1>
+            <p>Vue3 组件基础实践项目 - 展示组件通信、插槽、动态组件等核心概念</p>
+        </div>
+        
+        <!-- 控制面板 -->
+        <div class="control-panel">
+            <h3 style="color: white; margin-bottom: 15px;">🎛️ 组件控制面板</h3>
+            <div class="control-group">
+                <label>显示模式：</label>
+                <select v-model="displayMode">
+                    <option value="grid">网格布局</option>
+                    <option value="list">列表布局</option>
+                </select>
+                
+                <label>卡片主题：</label>
+                <select v-model="cardTheme">
+                    <option value="default">默认主题</option>
+                    <option value="dark">深色主题</option>
+                    <option value="colorful">彩色主题</option>
+                </select>
+                
+                <button @click="addRandomCard" class="btn">添加随机卡片</button>
+                <button @click="clearAllCards" class="btn btn-danger">清空所有卡片</button>
+            </div>
+        </div>
+        
+        <!-- 动态组件切换演示 -->
+        <div class="tab-container">
+            <h3 style="color: white; margin-bottom: 15px;">🔄 动态组件演示</h3>
+            <div class="tab-buttons">
+                <button 
+                    v-for="tab in tabs" 
+                    :key="tab.name"
+                    @click="currentTab = tab.name"
+                    :class="['tab-button', { active: currentTab === tab.name }]"
+                >
+                    {{ tab.label }}
+                </button>
+            </div>
+            <div class="tab-content">
+                <transition name="fade" mode="out-in">
+                    <component :is="currentTabComponent" :data="currentTabData"></component>
+                </transition>
+            </div>
+        </div>
+        
+        <!-- 基础卡片展示 -->
+        <div class="section">
+            <h2 class="section-title">📋 基础卡片组件</h2>
+            <div :class="displayMode === 'grid' ? 'card-grid' : 'card-list'">
+                <base-card 
+                    v-for="card in baseCards" 
+                    :key="card.id"
+                    :title="card.title"
+                    :content="card.content"
+                    :theme="cardTheme"
+                    @card-click="handleCardClick"
+                    @card-delete="deleteCard"
+                >
+                    <template #header>
+                        <span>🎯 {{ card.title }}</span>
+                    </template>
+                    <template #footer>
+                        <button @click="editCard(card)" class="btn btn-secondary">编辑</button>
+                        <button @click="deleteCard(card.id, 'base')" class="btn btn-danger">删除</button>
+                    </template>
+                </base-card>
+            </div>
+        </div>
+        
+        <!-- 用户卡片展示 -->
+        <div class="section">
+            <h2 class="section-title">👥 用户信息卡片</h2>
+            <div :class="displayMode === 'grid' ? 'card-grid' : 'card-list'">
+                <user-card 
+                    v-for="user in users" 
+                    :key="user.id"
+                    :user="user"
+                    :theme="cardTheme"
+                    @follow="followUser"
+                    @message="messageUser"
+                    @delete="deleteCard"
+                ></user-card>
+            </div>
+        </div>
+        
+        <!-- 产品卡片展示 -->
+        <div class="section">
+            <h2 class="section-title">🛍️ 产品展示卡片</h2>
+            <div :class="displayMode === 'grid' ? 'card-grid' : 'card-list'">
+                <product-card 
+                    v-for="product in products" 
+                    :key="product.id"
+                    :product="product"
+                    :theme="cardTheme"
+                    @add-to-cart="addToCart"
+                    @add-to-wishlist="addToWishlist"
+                    @delete="deleteCard"
+                ></product-card>
+            </div>
+        </div>
+        
+        <!-- 统计卡片展示 -->
+        <div class="section">
+            <h2 class="section-title">📊 统计数据卡片</h2>
+            <div :class="displayMode === 'grid' ? 'card-grid' : 'card-list'">
+                <stat-card 
+                    v-for="stat in statistics" 
+                    :key="stat.id"
+                    :stat="stat"
+                    :theme="cardTheme"
+                    @refresh="refreshStat"
+                    @delete="deleteCard"
+                ></stat-card>
+            </div>
+        </div>
+        
+        <!-- 消息提示 -->
+        <transition name="slide">
+            <div v-if="message" class="message" :class="messageType">
+                {{ message }}
+            </div>
+        </transition>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        
+        // 基础卡片组件
+        const BaseCard = {
+            props: {
+                title: {
+                    type: String,
+                    required: true
+                },
+                content: {
+                    type: String,
+                    required: true
+                },
+                theme: {
+                    type: String,
+                    default: 'default'
+                }
+            },
+            template: `
+                <div class="base-card" :class="themeClass" @click="handleClick">
+                    <div class="card-header">
+                        <slot name="header">
+                            <h3>{{ title }}</h3>
+                        </slot>
+                    </div>
+                    <div class="card-body">
+                        <p>{{ content }}</p>
+                        <slot></slot>
+                    </div>
+                    <div class="card-footer">
+                        <slot name="footer">
+                            <button @click.stop="$emit('card-delete')" class="btn btn-danger">删除</button>
+                        </slot>
+                    </div>
+                </div>
+            `,
+            computed: {
+                themeClass() {
+                    return `theme-${this.theme}`;
+                }
+            },
+            methods: {
+                handleClick() {
+                    this.$emit('card-click', {
+                        title: this.title,
+                        content: this.content
+                    });
+                }
+            }
+        };
+        
+        // 用户卡片组件
+        const UserCard = {
+            props: {
+                user: {
+                    type: Object,
+                    required: true
+                },
+                theme: {
+                    type: String,
+                    default: 'default'
+                }
+            },
+            template: `
+                <div class="base-card user-card" :class="themeClass">
+                    <div class="card-body">
+                        <img :src="user.avatar" :alt="user.name" class="user-avatar">
+                        <div class="user-name">{{ user.name }}</div>
+                        <div class="user-role">{{ user.role }}</div>
+                        <p>{{ user.bio }}</p>
+                        
+                        <div class="user-stats">
+                            <div class="stat-item">
+                                <div class="stat-number">{{ user.followers }}</div>
+                                <div class="stat-label">关注者</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">{{ user.following }}</div>
+                                <div class="stat-label">关注中</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">{{ user.posts }}</div>
+                                <div class="stat-label">帖子</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button @click="$emit('follow', user.id)" class="btn btn-success">关注</button>
+                        <button @click="$emit('message', user.id)" class="btn">私信</button>
+                        <button @click="$emit('delete', user.id, 'user')" class="btn btn-danger">删除</button>
+                    </div>
+                </div>
+            `,
+            computed: {
+                themeClass() {
+                    return `theme-${this.theme}`;
+                }
+            }
+        };
+        
+        // 产品卡片组件
+        const ProductCard = {
+            props: {
+                product: {
+                    type: Object,
+                    required: true
+                },
+                theme: {
+                    type: String,
+                    default: 'default'
+                }
+            },
+            template: `
+                <div class="base-card product-card" :class="themeClass">
+                    <div style="position: relative;">
+                        <img :src="product.image" :alt="product.name" class="product-image">
+                        <div v-if="product.badge" class="product-badge">{{ product.badge }}</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="product-title">{{ product.name }}</div>
+                        <div class="product-description">{{ product.description }}</div>
+                        <div class="product-price">
+                            <div>
+                                <span class="price">¥{{ product.price }}</span>
+                                <span v-if="product.originalPrice" class="original-price">¥{{ product.originalPrice }}</span>
+                            </div>
+                            <div>库存: {{ product.stock }}</div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button @click="$emit('add-to-cart', product.id)" class="btn btn-success">加入购物车</button>
+                        <button @click="$emit('add-to-wishlist', product.id)" class="btn">收藏</button>
+                        <button @click="$emit('delete', product.id, 'product')" class="btn btn-danger">删除</button>
+                    </div>
+                </div>
+            `,
+            computed: {
+                themeClass() {
+                    return `theme-${this.theme}`;
+                }
+            }
+        };
+        
+        // 统计卡片组件
+        const StatCard = {
+            props: {
+                stat: {
+                    type: Object,
+                    required: true
+                },
+                theme: {
+                    type: String,
+                    default: 'default'
+                }
+            },
+            template: `
+                <div class="base-card stat-card" :class="themeClass">
+                    <div class="card-body">
+                        <div class="stat-icon">{{ stat.icon }}</div>
+                        <div class="stat-value">{{ formattedValue }}</div>
+                        <div class="stat-title">{{ stat.title }}</div>
+                        <div class="stat-change" :class="changeClass">
+                            {{ stat.change > 0 ? '+' : '' }}{{ stat.change }}%
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button @click="$emit('refresh', stat.id)" class="btn">刷新数据</button>
+                        <button @click="$emit('delete', stat.id, 'stat')" class="btn btn-danger">删除</button>
+                    </div>
+                </div>
+            `,
+            computed: {
+                themeClass() {
+                    return `theme-${this.theme}`;
+                },
+                formattedValue() {
+                    if (this.stat.value >= 1000000) {
+                        return (this.stat.value / 1000000).toFixed(1) + 'M';
+                    } else if (this.stat.value >= 1000) {
+                        return (this.stat.value / 1000).toFixed(1) + 'K';
+                    }
+                    return this.stat.value.toString();
+                },
+                changeClass() {
+                    return this.stat.change > 0 ? 'positive' : 'negative';
+                }
+            }
+        };
+        
+        // 动态组件 - 用户管理
+        const UserManagement = {
+            props: ['data'],
+            template: `
+                <div>
+                    <h3>👥 用户管理</h3>
+                    <p>当前用户数量: {{ data.userCount }}</p>
+                    <div style="margin-top: 20px;">
+                        <button class="btn">添加用户</button>
+                        <button class="btn btn-secondary">导出用户</button>
+                        <button class="btn btn-danger">批量删除</button>
+                    </div>
+                </div>
+            `
+        };
+        
+        // 动态组件 - 产品管理
+        const ProductManagement = {
+            props: ['data'],
+            template: `
+                <div>
+                    <h3>🛍️ 产品管理</h3>
+                    <p>当前产品数量: {{ data.productCount }}</p>
+                    <p>总库存价值: ¥{{ data.totalValue }}</p>
+                    <div style="margin-top: 20px;">
+                        <button class="btn">添加产品</button>
+                        <button class="btn btn-secondary">库存管理</button>
+                        <button class="btn btn-success">价格调整</button>
+                    </div>
+                </div>
+            `
+        };
+        
+        // 动态组件 - 数据统计
+        const DataAnalytics = {
+            props: ['data'],
+            template: `
+                <div>
+                    <h3>📊 数据统计</h3>
+                    <p>今日访问量: {{ data.todayVisits }}</p>
+                    <p>总收入: ¥{{ data.totalRevenue }}</p>
+                    <p>活跃用户: {{ data.activeUsers }}</p>
+                    <div style="margin-top: 20px;">
+                        <button class="btn">生成报告</button>
+                        <button class="btn btn-secondary">导出数据</button>
+                        <button class="btn btn-success">实时监控</button>
+                    </div>
+                </div>
+            `
+        };
+        
+        // 主应用 - Vue3
+        
+        createApp({
+            components: {
+                BaseCard,
+                UserCard,
+                ProductCard,
+                StatCard,
+                UserManagement,
+                ProductManagement,
+                DataAnalytics
+            },
+            data() {
+                return {
+                    displayMode: 'grid',
+                    cardTheme: 'default',
+                    message: '',
+                    messageType: 'success',
+                    currentTab: 'users',
+                    tabs: [
+                        { name: 'users', label: '用户管理' },
+                        { name: 'products', label: '产品管理' },
+                        { name: 'analytics', label: '数据统计' }
+                    ],
+                    baseCards: [
+                        {
+                            id: 1,
+                            title: '欢迎使用组件库',
+                            content: '这是一个基础卡片组件，展示了插槽的使用方法。'
+                        },
+                        {
+                            id: 2,
+                            title: '组件通信演示',
+                            content: '点击卡片可以触发父子组件通信事件。'
+                        }
+                    ],
+                    users: [
+                        {
+                            id: 1,
+                            name: '张三',
+                            role: '前端开发工程师',
+                            bio: '热爱Vue.js开发，专注于用户体验设计。',
+                            avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+                            followers: 1234,
+                            following: 567,
+                            posts: 89
+                        },
+                        {
+                            id: 2,
+                            name: '李四',
+                            role: 'UI/UX 设计师',
+                            bio: '专注于创造美观且实用的用户界面。',
+                            avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
+                            followers: 2345,
+                            following: 123,
+                            posts: 156
+                        }
+                    ],
+                    products: [
+                        {
+                            id: 1,
+                            name: 'MacBook Pro 16"',
+                            description: '强大的专业级笔记本电脑，适合开发和设计工作。',
+                            price: 19999,
+                            originalPrice: 21999,
+                            stock: 15,
+                            image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=300&h=200&fit=crop',
+                            badge: '热销'
+                        },
+                        {
+                            id: 2,
+                            name: 'iPhone 15 Pro',
+                            description: '最新的iPhone，配备强大的A17芯片和专业级摄像系统。',
+                            price: 8999,
+                            originalPrice: null,
+                            stock: 8,
+                            image: 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=300&h=200&fit=crop',
+                            badge: '新品'
+                        }
+                    ],
+                    statistics: [
+                        {
+                            id: 1,
+                            title: '总用户数',
+                            value: 12567,
+                            change: 12.5,
+                            icon: '👥'
+                        },
+                        {
+                            id: 2,
+                            title: '月收入',
+                            value: 156789,
+                            change: -3.2,
+                            icon: '💰'
+                        },
+                        {
+                            id: 3,
+                            title: '活跃用户',
+                            value: 8934,
+                            change: 8.7,
+                            icon: '🔥'
+                        }
+                    ]
+                }
+            },
+            computed: {
+                currentTabComponent() {
+                    const componentMap = {
+                        users: 'UserManagement',
+                        products: 'ProductManagement',
+                        analytics: 'DataAnalytics'
+                    };
+                    return componentMap[this.currentTab];
+                },
+                currentTabData() {
+                    const dataMap = {
+                        users: {
+                            userCount: this.users.length
+                        },
+                        products: {
+                            productCount: this.products.length,
+                            totalValue: this.products.reduce((sum, p) => sum + (p.price * p.stock), 0)
+                        },
+                        analytics: {
+                            todayVisits: 3456,
+                            totalRevenue: 234567,
+                            activeUsers: this.statistics.find(s => s.title === '活跃用户')?.value || 0
+                        }
+                    };
+                    return dataMap[this.currentTab];
+                }
+            },
+            methods: {
+                handleCardClick(cardData) {
+                    this.showMessage(`点击了卡片: ${cardData.title}`, 'success');
+                },
+                editCard(card) {
+                    this.showMessage(`编辑卡片: ${card.title}`, 'info');
+                },
+                deleteCard(id, type) {
+                    const collections = {
+                        base: this.baseCards,
+                        user: this.users,
+                        product: this.products,
+                        stat: this.statistics
+                    };
+                    
+                    const collection = collections[type];
+                    if (collection) {
+                        const index = collection.findIndex(item => item.id === id);
+                        if (index !== -1) {
+                            collection.splice(index, 1);
+                            this.showMessage(`删除成功`, 'success');
+                        }
+                    }
+                },
+                followUser(userId) {
+                    this.showMessage(`关注了用户 ID: ${userId}`, 'success');
+                },
+                messageUser(userId) {
+                    this.showMessage(`发送私信给用户 ID: ${userId}`, 'info');
+                },
+                addToCart(productId) {
+                    this.showMessage(`商品已加入购物车 ID: ${productId}`, 'success');
+                },
+                addToWishlist(productId) {
+                    this.showMessage(`商品已加入收藏 ID: ${productId}`, 'info');
+                },
+                refreshStat(statId) {
+                    const stat = this.statistics.find(s => s.id === statId);
+                    if (stat) {
+                        stat.value = Math.floor(Math.random() * 100000);
+                        stat.change = (Math.random() - 0.5) * 20;
+                        this.showMessage(`统计数据已刷新`, 'success');
+                    }
+                },
+                addRandomCard() {
+                    const types = ['base', 'user', 'product', 'stat'];
+                    const type = types[Math.floor(Math.random() * types.length)];
+                    
+                    switch (type) {
+                        case 'base':
+                            this.baseCards.push({
+                                id: Date.now(),
+                                title: `随机卡片 ${this.baseCards.length + 1}`,
+                                content: '这是一个随机生成的卡片内容。'
+                            });
+                            break;
+                        case 'user':
+                            this.users.push({
+                                id: Date.now(),
+                                name: `用户${this.users.length + 1}`,
+                                role: '新用户',
+                                bio: '这是一个新注册的用户。',
+                                avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face',
+                                followers: Math.floor(Math.random() * 1000),
+                                following: Math.floor(Math.random() * 500),
+                                posts: Math.floor(Math.random() * 100)
+                            });
+                            break;
+                        case 'product':
+                            this.products.push({
+                                id: Date.now(),
+                                name: `产品${this.products.length + 1}`,
+                                description: '这是一个新的产品。',
+                                price: Math.floor(Math.random() * 10000) + 1000,
+                                originalPrice: null,
+                                stock: Math.floor(Math.random() * 50) + 1,
+                                image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=200&fit=crop',
+                                badge: '新品'
+                            });
+                            break;
+                        case 'stat':
+                            this.statistics.push({
+                                id: Date.now(),
+                                title: `统计${this.statistics.length + 1}`,
+                                value: Math.floor(Math.random() * 100000),
+                                change: (Math.random() - 0.5) * 20,
+                                icon: '📈'
+                            });
+                            break;
+                    }
+                    
+                    this.showMessage(`添加了一个随机${type}卡片`, 'success');
+                },
+                clearAllCards() {
+                    if (confirm('确定要清空所有卡片吗？')) {
+                        this.baseCards = [];
+                        this.users = [];
+                        this.products = [];
+                        this.statistics = [];
+                        this.showMessage('所有卡片已清空', 'success');
+                    }
+                },
+                showMessage(text, type = 'success') {
+                    this.message = text;
+                    this.messageType = type;
+                    setTimeout(() => {
+                        this.message = '';
+                    }, 3000);
+                }
+            }
+        }).mount('#app');
+    </script>
+    
+    <style>
+        .message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .message.success {
+            background: #2ecc71;
+        }
+        
+        .message.info {
+            background: #3498db;
+        }
+        
+        .message.warning {
+            background: #f39c12;
+        }
+        
+        .message.error {
+            background: #e74c3c;
+        }
+        
+        .theme-dark .base-card {
+            background: #2c3e50;
+            color: white;
+        }
+        
+        .theme-dark .card-footer {
+            background: #34495e;
+        }
+        
+        .theme-colorful .base-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .theme-colorful .card-footer {
+            background: rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</body>
+</html>

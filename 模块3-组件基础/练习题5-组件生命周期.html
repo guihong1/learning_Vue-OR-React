@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>练习题5 - Vue3组件生命周期</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .header h1 {
+            color: #333;
+            margin: 0;
+            font-size: 2.5em;
+        }
+        
+        .header p {
+            color: #666;
+            margin: 10px 0 0 0;
+            font-size: 1.1em;
+        }
+        
+        .exercise {
+            margin-bottom: 40px;
+            padding: 25px;
+            border: 2px solid #fce4ec;
+            border-radius: 10px;
+            background: #fafafa;
+        }
+        
+        .exercise h3 {
+            color: #c2185b;
+            margin-top: 0;
+            font-size: 1.4em;
+        }
+        
+        .requirements {
+            background: #fff3e0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #ff9800;
+        }
+        
+        .requirements h4 {
+            margin: 0 0 10px 0;
+            color: #e65100;
+        }
+        
+        .requirements ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .demo-area {
+            border: 2px dashed #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            background: white;
+            min-height: 200px;
+        }
+        
+        /* 控制面板样式 */
+        .controls {
+            background: #f3e5f5;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .controls label {
+            font-weight: bold;
+            color: #4a148c;
+        }
+        
+        /* 生命周期日志样式 */
+        .lifecycle-log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        
+        .log-entry {
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+        
+        .log-time {
+            color: #6c757d;
+            font-size: 12px;
+        }
+        
+        .log-component {
+            color: #007bff;
+            font-weight: bold;
+        }
+        
+        .log-lifecycle {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .log-created { color: #28a745; }
+        .log-mounted { color: #17a2b8; }
+        .log-updated { color: #ffc107; }
+        .log-unmounted { color: #dc3545; }
+        .log-activated { color: #6f42c1; }
+        .log-deactivated { color: #6c757d; }
+        
+        /* 组件卡片样式 */
+        .component-card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .component-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .component-card h4 {
+            margin: 0 0 15px 0;
+            color: #495057;
+            font-size: 1.3em;
+        }
+        
+        .component-status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-created {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-mounted {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .status-updated {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-unmounted {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        /* 计数器样式 */
+        .counter-display {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+        
+        .counter-number {
+            font-size: 3em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .counter-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        /* 用户列表样式 */
+        .user-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .user-item {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .user-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0 auto 10px;
+        }
+        
+        .user-name {
+            font-weight: bold;
+            color: #495057;
+            margin: 5px 0;
+        }
+        
+        .user-email {
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        /* 按钮样式 */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #1e7e34;
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .btn-warning:hover {
+            background: #e0a800;
+            transform: translateY(-2px);
+        }
+        
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .btn-info:hover {
+            background: #117a8b;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #545b62;
+            transform: translateY(-2px);
+        }
+        
+        /* 表单样式 */
+        .form-group {
+            margin: 15px 0;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.25);
+        }
+        
+        /* 提示样式 */
+        .tips {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #28a745;
+        }
+        
+        .tips h4 {
+            margin: 0 0 10px 0;
+            color: #155724;
+        }
+        
+        .tips ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .tips li {
+            margin: 5px 0;
+            color: #155724;
+        }
+        
+        /* 动画效果 */
+        .fade-enter-active, .fade-leave-active {
+            transition: opacity 0.5s ease;
+        }
+        
+        .fade-enter-from, .fade-leave-to {
+            opacity: 0;
+        }
+        
+        .slide-enter-active, .slide-leave-active {
+            transition: all 0.3s ease;
+        }
+        
+        .slide-enter-from {
+            transform: translateX(100%);
+        }
+        
+        .slide-leave-to {
+            transform: translateX(-100%);
+        }
+        
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .counter-controls {
+                flex-direction: column;
+            }
+            
+            .user-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔄 练习题5：组件生命周期</h1>
+            <p>学习Vue3中组件的生命周期钩子函数</p>
+        </div>
+        
+        <div class="exercise">
+            <h3>📊 练习1：生命周期监控（基础生命周期）</h3>
+            <div class="requirements">
+                <h4>任务目标：</h4>
+                <ul>
+                    <li>创建一个计数器组件，监控所有生命周期钩子</li>
+                    <li>实现 <code>created</code>、<code>mounted</code>、<code>updated</code>、<code>unmounted</code> 钩子</li>
+                    <li>在控制台和页面上显示生命周期执行日志</li>
+                    <li>通过组件的创建和销毁观察生命周期</li>
+                </ul>
+            </div>
+            
+            <div class="demo-area" id="app">
+                <div class="controls">
+                    <button @click="showCounter = !showCounter" :class="['btn', showCounter ? 'btn-danger' : 'btn-success']">
+                        {{ showCounter ? '🗑️ 销毁计数器' : '🎯 创建计数器' }}
+                    </button>
+                    <button @click="clearLog" class="btn btn-warning">🧹 清空日志</button>
+                    <button @click="forceUpdate" class="btn btn-info">🔄 强制更新</button>
+                </div>
+                
+                <transition name="fade">
+                    <lifecycle-counter v-if="showCounter" @log="addLog"></lifecycle-counter>
+                </transition>
+                
+                <div class="lifecycle-log">
+                    <h4>📋 生命周期日志</h4>
+                    <div v-if="logs.length === 0" style="text-align: center; color: #6c757d; padding: 20px;">
+                        暂无日志记录
+                    </div>
+                    <div v-for="(log, index) in logs" :key="index" class="log-entry">
+                        <div>
+                            <span class="log-component">{{ log.component }}</span>
+                            <span :class="['log-lifecycle', 'log-' + log.lifecycle]">{{ log.lifecycle }}</span>
+                            <span style="margin-left: 10px; color: #6c757d;">{{ log.message }}</span>
+                        </div>
+                        <span class="log-time">{{ log.time }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="exercise">
+            <h3>🔄 练习2：数据更新监控（watch和computed）</h3>
+            <div class="requirements">
+                <h4>扩展任务：</h4>
+                <ul>
+                    <li>创建一个用户管理组件</li>
+                    <li>使用 <code>watch</code> 监听数据变化</li>
+                    <li>使用 <code>computed</code> 计算派生数据</li>
+                    <li>观察数据变化时的生命周期触发</li>
+                </ul>
+            </div>
+            
+            <div class="demo-area">
+                <div class="controls">
+                    <button @click="showUserManager = !showUserManager" :class="['btn', showUserManager ? 'btn-danger' : 'btn-success']">
+                        {{ showUserManager ? '🗑️ 销毁用户管理' : '👥 创建用户管理' }}
+                    </button>
+                </div>
+                
+                <transition name="slide">
+                    <user-manager v-if="showUserManager" @log="addLog"></user-manager>
+                </transition>
+            </div>
+        </div>
+        
+        <div class="exercise">
+            <h3>💾 练习3：缓存组件生命周期（keep-alive）</h3>
+            <div class="requirements">
+                <h4>高级任务：</h4>
+                <ul>
+                    <li>创建多个标签页组件</li>
+                    <li>使用 <code>keep-alive</code> 缓存组件</li>
+                    <li>观察 <code>activated</code> 和 <code>deactivated</code> 钩子</li>
+                    <li>对比缓存和非缓存组件的生命周期差异</li>
+                </ul>
+            </div>
+            
+            <div class="demo-area">
+                <div class="controls">
+                    <label>缓存模式：</label>
+                    <label><input type="radio" v-model="cacheMode" value="with-cache"> 开启缓存</label>
+                    <label><input type="radio" v-model="cacheMode" value="no-cache"> 关闭缓存</label>
+                </div>
+                
+                <div class="controls">
+                    <span style="font-weight: bold; color: #4a148c;">选择标签页：</span>
+                    <button 
+                        v-for="tab in cacheTabs" 
+                        :key="tab.name"
+                        @click="currentCacheTab = tab.name"
+                        :class="['btn', currentCacheTab === tab.name ? 'btn-primary' : 'btn-secondary']">
+                        {{ tab.icon }} {{ tab.label }}
+                    </button>
+                </div>
+                
+                <div class="component-card">
+                    <transition name="fade" mode="out-in">
+                        <keep-alive v-if="cacheMode === 'with-cache'">
+                            <component :is="currentCacheTab" @log="addLog" :key="currentCacheTab"></component>
+                        </keep-alive>
+                        <component v-else :is="currentCacheTab" @log="addLog" :key="currentCacheTab + '-no-cache'"></component>
+                    </transition>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tips">
+            <h4>💡 学习提示</h4>
+            <ul>
+                <li><strong>创建阶段：</strong>beforeCreate → created → beforeMount → mounted</li>
+                <li><strong>更新阶段：</strong>beforeUpdate → updated（数据变化时触发）</li>
+                <li><strong>销毁阶段：</strong>beforeUnmount → unmounted</li>
+                <li><strong>缓存组件：</strong>activated（激活时）、deactivated（停用时）</li>
+                <li><strong>Vue3变化：</strong>beforeDestroy → beforeUnmount，destroyed → unmounted</li>
+                <li><strong>Composition API：</strong>可以使用 onMounted、onUpdated 等函数</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        const { createApp, ref, computed, watch, onMounted, onUpdated, onUnmounted, onActivated, onDeactivated } = Vue;
+        
+        // 生命周期计数器组件
+        const LifecycleCounter = {
+            emits: ['log'],
+            data() {
+                return {
+                    count: 0,
+                    status: 'created',
+                    updateCount: 0
+                }
+            },
+            template: `
+                <div class="component-card">
+                    <h4>🎯 生命周期计数器 <span :class="['component-status', 'status-' + status]">{{ status }}</span></h4>
+                    <div class="counter-display">
+                        <div>当前计数</div>
+                        <div class="counter-number">{{ count }}</div>
+                        <div>更新次数: {{ updateCount }}</div>
+                        <div class="counter-controls">
+                            <button @click="increment" class="btn btn-success">➕ 增加</button>
+                            <button @click="decrement" class="btn btn-danger">➖ 减少</button>
+                            <button @click="reset" class="btn btn-warning">🔄 重置</button>
+                        </div>
+                    </div>
+                </div>
+            `,
+            methods: {
+                increment() {
+                    this.count++;
+                },
+                decrement() {
+                    this.count--;
+                },
+                reset() {
+                    this.count = 0;
+                },
+                log(lifecycle, message = '') {
+                    this.$emit('log', {
+                        component: 'LifecycleCounter',
+                        lifecycle,
+                        message,
+                        time: new Date().toLocaleTimeString()
+                    });
+                    console.log(`[LifecycleCounter] ${lifecycle}: ${message}`);
+                }
+            },
+            beforeCreate() {
+                console.log('[LifecycleCounter] beforeCreate: 组件实例刚被创建');
+            },
+            created() {
+                this.status = 'created';
+                this.log('created', '组件实例创建完成，数据观测和事件配置完成');
+            },
+            beforeMount() {
+                this.log('beforeMount', '模板编译完成，即将挂载到DOM');
+            },
+            mounted() {
+                this.status = 'mounted';
+                this.log('mounted', '组件挂载到DOM完成，可以访问DOM元素');
+            },
+            beforeUpdate() {
+                this.log('beforeUpdate', '数据更新，DOM重新渲染之前');
+            },
+            updated() {
+                this.status = 'updated';
+                this.updateCount++;
+                this.log('updated', `DOM重新渲染完成，第${this.updateCount}次更新`);
+            },
+            beforeUnmount() {
+                this.log('beforeUnmount', '组件即将销毁');
+            },
+            unmounted() {
+                this.status = 'unmounted';
+                this.log('unmounted', '组件销毁完成，清理工作完成');
+            }
+        };
+        
+        // 用户管理组件
+        const UserManager = {
+            emits: ['log'],
+            data() {
+                return {
+                    users: [
+                        { id: 1, name: '张三', email: 'zhangsan@example.com', active: true },
+                        { id: 2, name: '李四', email: 'lisi@example.com', active: false },
+                        { id: 3, name: '王五', email: 'wangwu@example.com', active: true }
+                    ],
+                    searchTerm: '',
+                    newUser: {
+                        name: '',
+                        email: ''
+                    }
+                }
+            },
+            computed: {
+                filteredUsers() {
+                    return this.users.filter(user => 
+                        user.name.includes(this.searchTerm) || 
+                        user.email.includes(this.searchTerm)
+                    );
+                },
+                activeUserCount() {
+                    return this.users.filter(user => user.active).length;
+                },
+                totalUsers() {
+                    return this.users.length;
+                }
+            },
+            watch: {
+                searchTerm(newVal, oldVal) {
+                    this.log('watch', `搜索词从 "${oldVal}" 变为 "${newVal}"`);
+                },
+                users: {
+                    handler(newUsers) {
+                        this.log('watch', `用户列表更新，当前${newUsers.length}个用户`);
+                    },
+                    deep: true
+                },
+                activeUserCount(newCount) {
+                    this.log('computed', `活跃用户数量变化: ${newCount}`);
+                }
+            },
+            template: `
+                <div class="component-card">
+                    <h4>👥 用户管理系统</h4>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 20px 0;">
+                        <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; text-align: center;">
+                            <h5>👤 总用户数</h5>
+                            <div style="font-size: 2em; font-weight: bold; color: #1976d2;">{{ totalUsers }}</div>
+                        </div>
+                        <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; text-align: center;">
+                            <h5>✅ 活跃用户</h5>
+                            <div style="font-size: 2em; font-weight: bold; color: #388e3c;">{{ activeUserCount }}</div>
+                        </div>
+                        <div style="background: #fff3e0; padding: 15px; border-radius: 8px; text-align: center;">
+                            <h5>🔍 搜索结果</h5>
+                            <div style="font-size: 2em; font-weight: bold; color: #f57c00;">{{ filteredUsers.length }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>🔍 搜索用户：</label>
+                        <input v-model="searchTerm" class="form-control" placeholder="输入姓名或邮箱搜索...">
+                    </div>
+                    
+                    <div class="user-list">
+                        <div v-for="user in filteredUsers" :key="user.id" class="user-item">
+                            <div class="user-avatar">{{ user.name.charAt(0) }}</div>
+                            <div class="user-name">{{ user.name }}</div>
+                            <div class="user-email">{{ user.email }}</div>
+                            <div style="margin-top: 10px;">
+                                <button 
+                                    @click="toggleUserStatus(user)"
+                                    :class="['btn', user.active ? 'btn-warning' : 'btn-success']">
+                                    {{ user.active ? '停用' : '激活' }}
+                                </button>
+                                <button @click="removeUser(user.id)" class="btn btn-danger" style="margin-left: 5px;">删除</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-top: 20px;">
+                        <h5>➕ 添加新用户</h5>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: end;">
+                            <div class="form-group">
+                                <label>姓名：</label>
+                                <input v-model="newUser.name" class="form-control" placeholder="输入姓名">
+                            </div>
+                            <div class="form-group">
+                                <label>邮箱：</label>
+                                <input v-model="newUser.email" type="email" class="form-control" placeholder="输入邮箱">
+                            </div>
+                            <button @click="addUser" class="btn btn-primary">添加</button>
+                        </div>
+                    </div>
+                </div>
+            `,
+            methods: {
+                toggleUserStatus(user) {
+                    user.active = !user.active;
+                    this.log('method', `${user.active ? '激活' : '停用'}用户: ${user.name}`);
+                },
+                removeUser(userId) {
+                    const userIndex = this.users.findIndex(u => u.id === userId);
+                    if (userIndex > -1) {
+                        const user = this.users[userIndex];
+                        this.users.splice(userIndex, 1);
+                        this.log('method', `删除用户: ${user.name}`);
+                    }
+                },
+                addUser() {
+                    if (this.newUser.name && this.newUser.email) {
+                        const newUser = {
+                            id: Date.now(),
+                            name: this.newUser.name,
+                            email: this.newUser.email,
+                            active: true
+                        };
+                        this.users.push(newUser);
+                        this.log('method', `添加新用户: ${newUser.name}`);
+                        this.newUser = { name: '', email: '' };
+                    }
+                },
+                log(type, message) {
+                    this.$emit('log', {
+                        component: 'UserManager',
+                        lifecycle: type,
+                        message,
+                        time: new Date().toLocaleTimeString()
+                    });
+                }
+            },
+            created() {
+                this.log('created', '用户管理组件创建完成');
+            },
+            mounted() {
+                this.log('mounted', '用户管理组件挂载完成');
+            },
+            updated() {
+                this.log('updated', '用户管理组件更新完成');
+            },
+            unmounted() {
+                this.log('unmounted', '用户管理组件销毁完成');
+            }
+        };
+        
+        // 缓存标签页组件
+        const ProfileTab = {
+            emits: ['log'],
+            data() {
+                return {
+                    profile: {
+                        name: '张三',
+                        email: 'zhangsan@example.com',
+                        bio: '这是我的个人简介...'
+                    },
+                    editMode: false
+                }
+            },
+            template: `
+                <div>
+                    <h4>👤 个人资料</h4>
+                    <div v-if="!editMode">
+                        <p><strong>姓名:</strong> {{ profile.name }}</p>
+                        <p><strong>邮箱:</strong> {{ profile.email }}</p>
+                        <p><strong>简介:</strong> {{ profile.bio }}</p>
+                        <button @click="editMode = true" class="btn btn-primary">编辑资料</button>
+                    </div>
+                    <div v-else>
+                        <div class="form-group">
+                            <label>姓名:</label>
+                            <input v-model="profile.name" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>邮箱:</label>
+                            <input v-model="profile.email" type="email" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>简介:</label>
+                            <textarea v-model="profile.bio" class="form-control" rows="3"></textarea>
+                        </div>
+                        <button @click="editMode = false" class="btn btn-success">保存</button>
+                        <button @click="editMode = false" class="btn btn-secondary">取消</button>
+                    </div>
+                </div>
+            `,
+            methods: {
+                log(lifecycle, message) {
+                    this.$emit('log', {
+                        component: 'ProfileTab',
+                        lifecycle,
+                        message,
+                        time: new Date().toLocaleTimeString()
+                    });
+                }
+            },
+            created() {
+                this.log('created', '个人资料标签创建');
+            },
+            mounted() {
+                this.log('mounted', '个人资料标签挂载');
+            },
+            activated() {
+                this.log('activated', '个人资料标签激活');
+            },
+            deactivated() {
+                this.log('deactivated', '个人资料标签停用');
+            },
+            unmounted() {
+                this.log('unmounted', '个人资料标签销毁');
+            }
+        };
+        
+        const SettingsTab = {
+            emits: ['log'],
+            data() {
+                return {
+                    settings: {
+                        theme: 'light',
+                        language: 'zh-CN',
+                        notifications: true,
+                        autoSave: false
+                    }
+                }
+            },
+            template: `
+                <div>
+                    <h4>⚙️ 系统设置</h4>
+                    <div class="form-group">
+                        <label>主题:</label>
+                        <select v-model="settings.theme" class="form-control">
+                            <option value="light">浅色主题</option>
+                            <option value="dark">深色主题</option>
+                            <option value="auto">自动</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>语言:</label>
+                        <select v-model="settings.language" class="form-control">
+                            <option value="zh-CN">中文</option>
+                            <option value="en-US">English</option>
+                            <option value="ja-JP">日本語</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" v-model="settings.notifications"> 启用通知
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" v-model="settings.autoSave"> 自动保存
+                        </label>
+                    </div>
+                    <button @click="saveSettings" class="btn btn-success">保存设置</button>
+                </div>
+            `,
+            methods: {
+                saveSettings() {
+                    this.log('method', '设置已保存');
+                    alert('设置保存成功！');
+                },
+                log(lifecycle, message) {
+                    this.$emit('log', {
+                        component: 'SettingsTab',
+                        lifecycle,
+                        message,
+                        time: new Date().toLocaleTimeString()
+                    });
+                }
+            },
+            created() {
+                this.log('created', '设置标签创建');
+            },
+            mounted() {
+                this.log('mounted', '设置标签挂载');
+            },
+            activated() {
+                this.log('activated', '设置标签激活');
+            },
+            deactivated() {
+                this.log('deactivated', '设置标签停用');
+            },
+            unmounted() {
+                this.log('unmounted', '设置标签销毁');
+            }
+        };
+        
+        const MessagesTab = {
+            emits: ['log'],
+            data() {
+                return {
+                    messages: [
+                        { id: 1, from: '系统', content: '欢迎使用我们的应用！', time: '10:30', read: false },
+                        { id: 2, from: '管理员', content: '您的账户已通过验证。', time: '09:15', read: true },
+                        { id: 3, from: '客服', content: '有什么问题可以随时联系我们。', time: '昨天', read: false }
+                    ],
+                    newMessage: ''
+                }
+            },
+            computed: {
+                unreadCount() {
+                    return this.messages.filter(msg => !msg.read).length;
+                }
+            },
+            template: `
+                <div>
+                    <h4>💬 消息中心 <span v-if="unreadCount > 0" style="background: #dc3545; color: white; padding: 2px 6px; border-radius: 10px; font-size: 12px;">{{ unreadCount }}</span></h4>
+                    <div style="max-height: 300px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 8px; padding: 10px;">
+                        <div v-for="message in messages" :key="message.id" 
+                             :style="{ padding: '10px', borderBottom: '1px solid #eee', background: message.read ? '#f8f9fa' : 'white' }">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <strong>{{ message.from }}</strong>
+                                <span style="font-size: 12px; color: #6c757d;">{{ message.time }}</span>
+                            </div>
+                            <p style="margin: 5px 0;">{{ message.content }}</p>
+                            <button v-if="!message.read" @click="markAsRead(message)" class="btn btn-primary" style="font-size: 12px; padding: 4px 8px;">标记已读</button>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <div class="form-group">
+                            <label>发送消息:</label>
+                            <input v-model="newMessage" @keyup.enter="sendMessage" class="form-control" placeholder="输入消息内容...">
+                        </div>
+                        <button @click="sendMessage" class="btn btn-primary">发送</button>
+                        <button @click="markAllRead" class="btn btn-secondary">全部已读</button>
+                    </div>
+                </div>
+            `,
+            methods: {
+                markAsRead(message) {
+                    message.read = true;
+                    this.log('method', `标记消息已读: ${message.content.substring(0, 10)}...`);
+                },
+                markAllRead() {
+                    this.messages.forEach(msg => msg.read = true);
+                    this.log('method', '标记所有消息已读');
+                },
+                sendMessage() {
+                    if (this.newMessage.trim()) {
+                        this.messages.unshift({
+                            id: Date.now(),
+                            from: '我',
+                            content: this.newMessage,
+                            time: new Date().toLocaleTimeString(),
+                            read: true
+                        });
+                        this.log('method', `发送消息: ${this.newMessage.substring(0, 10)}...`);
+                        this.newMessage = '';
+                    }
+                },
+                log(lifecycle, message) {
+                    this.$emit('log', {
+                        component: 'MessagesTab',
+                        lifecycle,
+                        message,
+                        time: new Date().toLocaleTimeString()
+                    });
+                }
+            },
+            created() {
+                this.log('created', '消息标签创建');
+            },
+            mounted() {
+                this.log('mounted', '消息标签挂载');
+            },
+            activated() {
+                this.log('activated', '消息标签激活');
+            },
+            deactivated() {
+                this.log('deactivated', '消息标签停用');
+            },
+            unmounted() {
+                this.log('unmounted', '消息标签销毁');
+            }
+        };
+        
+        // 创建主应用
+        createApp({
+            components: {
+                LifecycleCounter,
+                UserManager,
+                ProfileTab,
+                SettingsTab,
+                MessagesTab
+            },
+            data() {
+                return {
+                    // 基础组件控制
+                    showCounter: false,
+                    showUserManager: false,
+                    
+                    // 缓存组件控制
+                    cacheMode: 'with-cache',
+                    currentCacheTab: 'ProfileTab',
+                    cacheTabs: [
+                        { name: 'ProfileTab', label: '个人资料', icon: '👤' },
+                        { name: 'SettingsTab', label: '系统设置', icon: '⚙️' },
+                        { name: 'MessagesTab', label: '消息中心', icon: '💬' }
+                    ],
+                    
+                    // 日志系统
+                    logs: []
+                }
+            },
+            methods: {
+                addLog(logEntry) {
+                    this.logs.unshift(logEntry);
+                    // 限制日志数量，避免内存泄漏
+                    if (this.logs.length > 100) {
+                        this.logs = this.logs.slice(0, 100);
+                    }
+                },
+                clearLog() {
+                    this.logs = [];
+                },
+                forceUpdate() {
+                    this.$forceUpdate();
+                    this.addLog({
+                        component: 'App',
+                        lifecycle: 'forceUpdate',
+                        message: '强制更新应用',
+                        time: new Date().toLocaleTimeString()
+                    });
+                }
+            },
+            mounted() {
+                this.addLog({
+                    component: 'App',
+                    lifecycle: 'mounted',
+                    message: '主应用挂载完成',
+                    time: new Date().toLocaleTimeString()
+                });
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

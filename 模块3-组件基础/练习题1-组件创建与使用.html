@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>练习题1 - Vue3组件创建与使用</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .header h1 {
+            color: #333;
+            margin: 0;
+            font-size: 2.5em;
+        }
+        
+        .header p {
+            color: #666;
+            margin: 10px 0 0 0;
+            font-size: 1.1em;
+        }
+        
+        .exercise {
+            margin-bottom: 40px;
+            padding: 25px;
+            border: 2px solid #e3f2fd;
+            border-radius: 10px;
+            background: #fafafa;
+        }
+        
+        .exercise h3 {
+            color: #1976d2;
+            margin-top: 0;
+            font-size: 1.4em;
+        }
+        
+        .requirements {
+            background: #fff3e0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #ff9800;
+        }
+        
+        .requirements h4 {
+            margin: 0 0 10px 0;
+            color: #e65100;
+        }
+        
+        .requirements ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .demo-area {
+            border: 2px dashed #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            background: white;
+            min-height: 100px;
+        }
+        
+        .greeting-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 10px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .greeting-card h2 {
+            margin: 0 0 10px 0;
+            font-size: 1.8em;
+        }
+        
+        .greeting-card p {
+            margin: 0;
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .user-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border: 1px solid #dee2e6;
+        }
+        
+        .user-info h3 {
+            margin: 0 0 10px 0;
+            color: #495057;
+        }
+        
+        .user-info p {
+            margin: 5px 0;
+            color: #6c757d;
+        }
+        
+        .controls {
+            margin: 20px 0;
+            padding: 15px;
+            background: #e8f5e8;
+            border-radius: 8px;
+        }
+        
+        .controls label {
+            display: block;
+            margin: 10px 0 5px 0;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+        
+        .controls input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .tips {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .tips h4 {
+            margin: 0 0 10px 0;
+            color: #1565c0;
+        }
+        
+        .tips ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .tips li {
+            margin: 5px 0;
+            color: #1976d2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 练习题1：组件创建与使用</h1>
+            <p>学习Vue3组件的基本创建方法和使用方式</p>
+        </div>
+        
+        <div class="exercise">
+            <h3>📝 练习要求</h3>
+            <div class="requirements">
+                <h4>任务目标：</h4>
+                <ul>
+                    <li>创建一个名为 <code>GreetingCard</code> 的组件</li>
+                    <li>组件接收 <code>name</code> 和 <code>message</code> 两个props</li>
+                    <li>在主应用中使用这个组件，并传递不同的数据</li>
+                    <li>尝试创建多个组件实例，展示组件的复用性</li>
+                </ul>
+            </div>
+            
+            <div class="demo-area" id="app">
+                <!-- 在这里使用你创建的组件 -->
+                <greeting-card 
+                    name="张三" 
+                    message="欢迎来到Vue3的世界！">
+                </greeting-card>
+                
+                <greeting-card 
+                    name="李四" 
+                    message="组件化开发让代码更加优雅！">
+                </greeting-card>
+                
+                <greeting-card 
+                    name="王五" 
+                    message="Vue3的Composition API真的很强大！">
+                </greeting-card>
+            </div>
+        </div>
+        
+        <div class="exercise">
+            <h3>🔧 进阶挑战</h3>
+            <div class="requirements">
+                <h4>扩展任务：</h4>
+                <ul>
+                    <li>创建一个 <code>UserInfo</code> 组件，接收用户对象作为prop</li>
+                    <li>用户对象包含：name, age, email, department</li>
+                    <li>在组件中美观地展示这些信息</li>
+                    <li>添加输入控件，允许动态修改用户信息</li>
+                </ul>
+            </div>
+            
+            <div class="controls">
+                <label>姓名：</label>
+                <input v-model="user.name" placeholder="请输入姓名">
+                
+                <label>年龄：</label>
+                <input v-model.number="user.age" type="number" placeholder="请输入年龄">
+                
+                <label>邮箱：</label>
+                <input v-model="user.email" placeholder="请输入邮箱">
+                
+                <label>部门：</label>
+                <input v-model="user.department" placeholder="请输入部门">
+            </div>
+            
+            <div class="demo-area">
+                <user-info :user="user"></user-info>
+            </div>
+        </div>
+        
+        <div class="tips">
+            <h4>💡 学习提示</h4>
+            <ul>
+                <li><strong>组件定义：</strong>使用对象形式定义组件，包含template、props等选项</li>
+                <li><strong>Props验证：</strong>为props添加类型验证和默认值</li>
+                <li><strong>组件注册：</strong>在主应用的components选项中注册组件</li>
+                <li><strong>数据传递：</strong>通过属性的方式向子组件传递数据</li>
+                <li><strong>组件复用：</strong>同一个组件可以在不同地方使用，传递不同的数据</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        const { createApp } = Vue;
+        
+        // 创建 GreetingCard 组件
+        const GreetingCard = {
+            props: {
+                name: {
+                    type: String,
+                    required: true
+                },
+                message: {
+                    type: String,
+                    default: '欢迎使用Vue3！'
+                }
+            },
+            template: `
+                <div class="greeting-card">
+                    <h2>你好，{{ name }}！</h2>
+                    <p>{{ message }}</p>
+                </div>
+            `
+        };
+        
+        // 创建 UserInfo 组件
+        const UserInfo = {
+            props: {
+                user: {
+                    type: Object,
+                    required: true,
+                    default: () => ({
+                        name: '',
+                        age: 0,
+                        email: '',
+                        department: ''
+                    })
+                }
+            },
+            template: `
+                <div class="user-info">
+                    <h3>👤 用户信息</h3>
+                    <p><strong>姓名：</strong>{{ user.name || '未设置' }}</p>
+                    <p><strong>年龄：</strong>{{ user.age || '未设置' }}</p>
+                    <p><strong>邮箱：</strong>{{ user.email || '未设置' }}</p>
+                    <p><strong>部门：</strong>{{ user.department || '未设置' }}</p>
+                </div>
+            `
+        };
+        
+        // 创建主应用
+        createApp({
+            components: {
+                GreetingCard,
+                UserInfo
+            },
+            data() {
+                return {
+                    user: {
+                        name: '张三',
+                        age: 28,
+                        email: 'zhangsan@example.com',
+                        department: '技术部'
+                    }
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
