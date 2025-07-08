@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>练习题1：计算属性基础 - Vue3</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .exercise {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-left: 5px solid #74b9ff;
+        }
+
+        .exercise-title {
+            font-size: 1.4em;
+            color: #2d3436;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .exercise-description {
+            color: #636e72;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2d3436;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #74b9ff;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            border: 2px solid #e9ecef;
+        }
+
+        .result-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #74b9ff;
+            margin-bottom: 5px;
+        }
+
+        .result-label {
+            color: #636e72;
+            font-size: 0.9em;
+        }
+
+        .student-list {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .student-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+            transition: background 0.3s ease;
+        }
+
+        .student-item:hover {
+            background: #f8f9fa;
+        }
+
+        .student-item:last-child {
+            border-bottom: none;
+        }
+
+        .student-name {
+            font-weight: bold;
+            color: #2d3436;
+        }
+
+        .student-scores {
+            display: flex;
+            gap: 15px;
+            font-size: 0.9em;
+            color: #636e72;
+        }
+
+        .student-average {
+            font-weight: bold;
+            color: #00b894;
+        }
+
+        .grade-excellent {
+            color: #00b894;
+            font-weight: bold;
+        }
+
+        .grade-good {
+            color: #fdcb6e;
+            font-weight: bold;
+        }
+
+        .grade-poor {
+            color: #e17055;
+            font-weight: bold;
+        }
+
+        .add-student {
+            background: #74b9ff;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s ease;
+            margin-top: 15px;
+        }
+
+        .add-student:hover {
+            background: #0984e3;
+        }
+
+        .tips {
+            background: #e8f4fd;
+            border: 1px solid #74b9ff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .tips h4 {
+            color: #0984e3;
+            margin-bottom: 10px;
+        }
+
+        .tips ul {
+            color: #636e72;
+            padding-left: 20px;
+        }
+
+        .tips li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <div class="header">
+                <h1>📊 练习题1：计算属性基础</h1>
+                <p>学生成绩管理系统 - 掌握computed的基本用法</p>
+            </div>
+
+            <div class="content">
+                <!-- 练习1：基础计算属性 -->
+                <div class="exercise">
+                    <h2 class="exercise-title">🎯 练习1：学生成绩统计</h2>
+                    <p class="exercise-description">
+                        创建一个学生成绩管理系统，使用计算属性实现平均分、及格率、最高分、最低分等统计功能。
+                    </p>
+
+                    <!-- 添加学生表单 -->
+                    <div class="grid">
+                        <div class="form-group">
+                            <label>学生姓名:</label>
+                            <input type="text" v-model="newStudent.name" placeholder="请输入学生姓名">
+                        </div>
+                        <div class="form-group">
+                            <label>数学成绩:</label>
+                            <input type="number" v-model.number="newStudent.math" min="0" max="100" placeholder="0-100">
+                        </div>
+                        <div class="form-group">
+                            <label>语文成绩:</label>
+                            <input type="number" v-model.number="newStudent.chinese" min="0" max="100" placeholder="0-100">
+                        </div>
+                        <div class="form-group">
+                            <label>英语成绩:</label>
+                            <input type="number" v-model.number="newStudent.english" min="0" max="100" placeholder="0-100">
+                        </div>
+                    </div>
+                    <button class="add-student" @click="addStudent">添加学生</button>
+
+                    <!-- 统计结果 -->
+                    <div class="grid" style="margin-top: 30px;">
+                        <div class="result-card">
+                            <div class="result-value">{{ totalStudents }}</div>
+                            <div class="result-label">学生总数</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-value">{{ classAverage.toFixed(1) }}</div>
+                            <div class="result-label">班级平均分</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-value">{{ passRate.toFixed(1) }}%</div>
+                            <div class="result-label">及格率</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-value">{{ excellentRate.toFixed(1) }}%</div>
+                            <div class="result-label">优秀率 (≥90)</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-value">{{ highestScore }}</div>
+                            <div class="result-label">最高分</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-value">{{ lowestScore }}</div>
+                            <div class="result-label">最低分</div>
+                        </div>
+                    </div>
+
+                    <!-- 学生列表 -->
+                    <div class="student-list" v-if="students.length > 0">
+                        <h3 style="margin-bottom: 20px; color: #2d3436;">📋 学生成绩详情</h3>
+                        <div v-for="(student, index) in students" :key="index" class="student-item">
+                            <div class="student-name">{{ student.name }}</div>
+                            <div class="student-scores">
+                                <span>数学: {{ student.math }}</span>
+                                <span>语文: {{ student.chinese }}</span>
+                                <span>英语: {{ student.english }}</span>
+                                <span class="student-average">平均: {{ getStudentAverage(student).toFixed(1) }}</span>
+                                <span :class="getGradeClass(getStudentAverage(student))">{{ getGradeText(getStudentAverage(student)) }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 练习2：复杂计算属性 -->
+                <div class="exercise">
+                    <h2 class="exercise-title">🎯 练习2：成绩分析与排名</h2>
+                    <p class="exercise-description">
+                        使用计算属性实现更复杂的数据分析，包括学科排名、成绩分布、标准差等。
+                    </p>
+
+                    <div class="grid">
+                        <div class="result-card">
+                            <div class="result-value">{{ mathAverage.toFixed(1) }}</div>
+                            <div class="result-label">数学平均分</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-value">{{ chineseAverage.toFixed(1) }}</div>
+                            <div class="result-label">语文平均分</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-value">{{ englishAverage.toFixed(1) }}</div>
+                            <div class="result-label">英语平均分</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-value">{{ bestSubject }}</div>
+                            <div class="result-label">最强学科</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-value">{{ standardDeviation.toFixed(2) }}</div>
+                            <div class="result-label">成绩标准差</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-value">{{ topStudent?.name || '暂无' }}</div>
+                            <div class="result-label">第一名</div>
+                        </div>
+                    </div>
+
+                    <!-- 排名列表 -->
+                    <div class="student-list" v-if="rankedStudents.length > 0">
+                        <h3 style="margin-bottom: 20px; color: #2d3436;">🏆 学生排名</h3>
+                        <div v-for="(student, index) in rankedStudents" :key="index" class="student-item">
+                            <div class="student-name">
+                                <span style="color: #74b9ff; font-weight: bold;">第{{ index + 1 }}名</span>
+                                {{ student.name }}
+                            </div>
+                            <div class="student-scores">
+                                <span>总平均: {{ getStudentAverage(student).toFixed(1) }}</span>
+                                <span :class="getGradeClass(getStudentAverage(student))">{{ getGradeText(getStudentAverage(student)) }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 学习提示 -->
+                <div class="tips">
+                    <h4>💡 学习要点</h4>
+                    <ul>
+                        <li><strong>计算属性缓存：</strong>只有依赖的响应式数据发生变化时才会重新计算</li>
+                        <li><strong>自动依赖追踪：</strong>Vue会自动追踪计算属性中使用的响应式数据</li>
+                        <li><strong>性能优化：</strong>相比methods，computed有缓存机制，避免重复计算</li>
+                        <li><strong>纯函数：</strong>计算属性应该是纯函数，不应该有副作用</li>
+                        <li><strong>复杂逻辑：</strong>可以在计算属性中使用复杂的JavaScript逻辑</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed } = Vue
+
+        createApp({
+            setup() {
+                // 响应式数据
+                const students = ref([
+                    { name: '张三', math: 85, chinese: 92, english: 78 },
+                    { name: '李四', math: 76, chinese: 88, english: 82 },
+                    { name: '王五', math: 94, chinese: 85, english: 90 },
+                    { name: '赵六', math: 68, chinese: 75, english: 71 },
+                    { name: '钱七', math: 89, chinese: 91, english: 87 }
+                ])
+
+                const newStudent = ref({
+                    name: '',
+                    math: 0,
+                    chinese: 0,
+                    english: 0
+                })
+
+                // 基础计算属性
+                const totalStudents = computed(() => {
+                    return students.value.length
+                })
+
+                const classAverage = computed(() => {
+                    if (students.value.length === 0) return 0
+                    
+                    const total = students.value.reduce((sum, student) => {
+                        return sum + (student.math + student.chinese + student.english) / 3
+                    }, 0)
+                    
+                    return total / students.value.length
+                })
+
+                const passRate = computed(() => {
+                    if (students.value.length === 0) return 0
+                    
+                    const passCount = students.value.filter(student => {
+                        const average = (student.math + student.chinese + student.english) / 3
+                        return average >= 60
+                    }).length
+                    
+                    return (passCount / students.value.length) * 100
+                })
+
+                const excellentRate = computed(() => {
+                    if (students.value.length === 0) return 0
+                    
+                    const excellentCount = students.value.filter(student => {
+                        const average = (student.math + student.chinese + student.english) / 3
+                        return average >= 90
+                    }).length
+                    
+                    return (excellentCount / students.value.length) * 100
+                })
+
+                const highestScore = computed(() => {
+                    if (students.value.length === 0) return 0
+                    
+                    return Math.max(...students.value.map(student => {
+                        return Math.max(student.math, student.chinese, student.english)
+                    }))
+                })
+
+                const lowestScore = computed(() => {
+                    if (students.value.length === 0) return 0
+                    
+                    return Math.min(...students.value.map(student => {
+                        return Math.min(student.math, student.chinese, student.english)
+                    }))
+                })
+
+                // 学科平均分
+                const mathAverage = computed(() => {
+                    if (students.value.length === 0) return 0
+                    const total = students.value.reduce((sum, student) => sum + student.math, 0)
+                    return total / students.value.length
+                })
+
+                const chineseAverage = computed(() => {
+                    if (students.value.length === 0) return 0
+                    const total = students.value.reduce((sum, student) => sum + student.chinese, 0)
+                    return total / students.value.length
+                })
+
+                const englishAverage = computed(() => {
+                    if (students.value.length === 0) return 0
+                    const total = students.value.reduce((sum, student) => sum + student.english, 0)
+                    return total / students.value.length
+                })
+
+                // 最强学科
+                const bestSubject = computed(() => {
+                    const averages = {
+                        '数学': mathAverage.value,
+                        '语文': chineseAverage.value,
+                        '英语': englishAverage.value
+                    }
+                    
+                    return Object.keys(averages).reduce((a, b) => 
+                        averages[a] > averages[b] ? a : b
+                    )
+                })
+
+                // 标准差
+                const standardDeviation = computed(() => {
+                    if (students.value.length === 0) return 0
+                    
+                    const mean = classAverage.value
+                    const squaredDifferences = students.value.map(student => {
+                        const studentAvg = (student.math + student.chinese + student.english) / 3
+                        return Math.pow(studentAvg - mean, 2)
+                    })
+                    
+                    const variance = squaredDifferences.reduce((sum, diff) => sum + diff, 0) / students.value.length
+                    return Math.sqrt(variance)
+                })
+
+                // 排名
+                const rankedStudents = computed(() => {
+                    return [...students.value].sort((a, b) => {
+                        const avgA = (a.math + a.chinese + a.english) / 3
+                        const avgB = (b.math + b.chinese + b.english) / 3
+                        return avgB - avgA
+                    })
+                })
+
+                // 第一名
+                const topStudent = computed(() => {
+                    return rankedStudents.value[0] || null
+                })
+
+                // 方法
+                const addStudent = () => {
+                    if (!newStudent.value.name.trim()) {
+                        alert('请输入学生姓名')
+                        return
+                    }
+                    
+                    if (newStudent.value.math < 0 || newStudent.value.math > 100 ||
+                        newStudent.value.chinese < 0 || newStudent.value.chinese > 100 ||
+                        newStudent.value.english < 0 || newStudent.value.english > 100) {
+                        alert('成绩必须在0-100之间')
+                        return
+                    }
+                    
+                    students.value.push({
+                        name: newStudent.value.name,
+                        math: newStudent.value.math,
+                        chinese: newStudent.value.chinese,
+                        english: newStudent.value.english
+                    })
+                    
+                    // 重置表单
+                    newStudent.value = {
+                        name: '',
+                        math: 0,
+                        chinese: 0,
+                        english: 0
+                    }
+                }
+
+                const getStudentAverage = (student) => {
+                    return (student.math + student.chinese + student.english) / 3
+                }
+
+                const getGradeText = (average) => {
+                    if (average >= 90) return '优秀'
+                    if (average >= 80) return '良好'
+                    if (average >= 70) return '中等'
+                    if (average >= 60) return '及格'
+                    return '不及格'
+                }
+
+                const getGradeClass = (average) => {
+                    if (average >= 90) return 'grade-excellent'
+                    if (average >= 70) return 'grade-good'
+                    return 'grade-poor'
+                }
+
+                return {
+                    students,
+                    newStudent,
+                    totalStudents,
+                    classAverage,
+                    passRate,
+                    excellentRate,
+                    highestScore,
+                    lowestScore,
+                    mathAverage,
+                    chineseAverage,
+                    englishAverage,
+                    bestSubject,
+                    standardDeviation,
+                    rankedStudents,
+                    topStudent,
+                    addStudent,
+                    getStudentAverage,
+                    getGradeText,
+                    getGradeClass
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>

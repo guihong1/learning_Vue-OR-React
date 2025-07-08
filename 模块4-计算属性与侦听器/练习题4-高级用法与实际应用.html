@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>练习题4：高级用法与实际应用 - Vue3</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .exercise {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-left: 5px solid #fd79a8;
+        }
+
+        .exercise-title {
+            font-size: 1.4em;
+            color: #2d3436;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .exercise-description {
+            color: #636e72;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .demo-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #e9ecef;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2d3436;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #fd79a8;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: auto;
+        }
+
+        .result-display {
+            background: #e8f4fd;
+            border: 1px solid #fd79a8;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .result-display h4 {
+            color: #e84393;
+            margin-bottom: 10px;
+        }
+
+        .result-item {
+            margin: 5px 0;
+            color: #2d3436;
+        }
+
+        .btn {
+            background: #fd79a8;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            background: #e84393;
+        }
+
+        .btn:disabled {
+            background: #ddd;
+            cursor: not-allowed;
+        }
+
+        .btn.danger {
+            background: #e17055;
+        }
+
+        .btn.danger:hover {
+            background: #d63031;
+        }
+
+        .btn.success {
+            background: #00b894;
+        }
+
+        .btn.success:hover {
+            background: #00a085;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #fd79a8, #e84393);
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #e9ecef;
+        }
+
+        .chart-bar {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        .chart-label {
+            width: 100px;
+            font-size: 14px;
+            color: #636e72;
+        }
+
+        .chart-bar-fill {
+            height: 20px;
+            background: linear-gradient(90deg, #fd79a8, #e84393);
+            border-radius: 10px;
+            margin: 0 10px;
+            transition: width 0.3s ease;
+        }
+
+        .chart-value {
+            font-size: 14px;
+            font-weight: bold;
+            color: #2d3436;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            transform: translateX(100%);
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: #00b894;
+        }
+
+        .notification.error {
+            background: #e17055;
+        }
+
+        .notification.warning {
+            background: #fdcb6e;
+            color: #2d3436;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .data-table th,
+        .data-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .data-table th {
+            background: #fd79a8;
+            color: white;
+            font-weight: bold;
+        }
+
+        .data-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .data-table tr:hover {
+            background: #e8f4fd;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #e9ecef;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            border-bottom-color: #fd79a8;
+            color: #e84393;
+            font-weight: bold;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .code-example {
+            background: #2d3436;
+            color: #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 4px;
+            border-radius: 3px;
+            color: #856404;
+            font-weight: bold;
+        }
+
+        .tips {
+            background: #e8f4fd;
+            border: 1px solid #fd79a8;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .tips h4 {
+            color: #e84393;
+            margin-bottom: 10px;
+        }
+
+        .tips ul {
+            color: #636e72;
+            padding-left: 20px;
+        }
+
+        .tips li {
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <div class="header">
+                <h1>🚀 练习题4：高级用法与实际应用</h1>
+                <p>watchEffect、停止侦听器、getter/setter - 掌握高级特性</p>
+            </div>
+
+            <div class="content">
+                <!-- 练习1：watchEffect 自动依赖追踪 -->
+                <div class="exercise">
+                    <h2 class="exercise-title">⚡ 练习1：watchEffect 自动依赖追踪</h2>
+                    <p class="exercise-description">
+                        使用 watchEffect 实现自动依赖追踪，无需手动指定监听的数据源。
+                    </p>
+
+                    <div class="demo-container">
+                        <div class="form-grid">
+                            <div>
+                                <div class="form-group">
+                                    <label>用户名:</label>
+                                    <input type="text" v-model="userSettings.username" placeholder="输入用户名">
+                                </div>
+                                <div class="form-group">
+                                    <label>主题:</label>
+                                    <select v-model="userSettings.theme">
+                                        <option value="light">浅色主题</option>
+                                        <option value="dark">深色主题</option>
+                                        <option value="auto">自动</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>语言:</label>
+                                    <select v-model="userSettings.language">
+                                        <option value="zh">中文</option>
+                                        <option value="en">English</option>
+                                        <option value="ja">日本語</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="form-group">
+                                    <label>通知设置:</label>
+                                    <div class="checkbox-group">
+                                        <div class="checkbox-item">
+                                            <input type="checkbox" v-model="userSettings.notifications.email" id="email">
+                                            <label for="email">邮件通知</label>
+                                        </div>
+                                        <div class="checkbox-item">
+                                            <input type="checkbox" v-model="userSettings.notifications.push" id="push">
+                                            <label for="push">推送通知</label>
+                                        </div>
+                                        <div class="checkbox-item">
+                                            <input type="checkbox" v-model="userSettings.notifications.sms" id="sms">
+                                            <label for="sms">短信通知</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>自动保存间隔 (秒):</label>
+                                    <input type="range" v-model.number="userSettings.autoSaveInterval" min="5" max="60" step="5">
+                                    <span>{{ userSettings.autoSaveInterval }}秒</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="result-display">
+                            <h4>📊 自动追踪状态</h4>
+                            <div class="result-item"><strong>配置更新次数:</strong> {{ settingsUpdateCount }}</div>
+                            <div class="result-item"><strong>最后保存时间:</strong> {{ lastSaveTime }}</div>
+                            <div class="result-item"><strong>配置哈希:</strong> {{ settingsHash }}</div>
+                            <div class="result-item"><strong>启用的通知:</strong> {{ enabledNotifications.join(', ') || '无' }}</div>
+                        </div>
+
+                        <div class="code-example">
+// watchEffect 自动追踪所有响应式依赖
+watchEffect(() => {
+  // 自动追踪 userSettings 的所有变化
+  const hash = generateHash(userSettings.value)
+  settingsHash.value = hash
+  settingsUpdateCount.value++
+  
+  // 自动保存到 localStorage
+  localStorage.setItem('userSettings', JSON.stringify(userSettings.value))
+  lastSaveTime.value = new Date().toLocaleTimeString()
+})
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 练习2：计算属性的 getter 和 setter -->
+                <div class="exercise">
+                    <h2 class="exercise-title">🔄 练习2：计算属性的 getter 和 setter</h2>
+                    <p class="exercise-description">
+                        实现可读写的计算属性，处理复杂的数据转换逻辑。
+                    </p>
+
+                    <div class="demo-container">
+                        <div class="form-grid">
+                            <div>
+                                <div class="form-group">
+                                    <label>全名 (可直接编辑):</label>
+                                    <input type="text" v-model="fullName" placeholder="输入全名">
+                                </div>
+                                <div class="form-group">
+                                    <label>姓:</label>
+                                    <input type="text" v-model="firstName" placeholder="姓">
+                                </div>
+                                <div class="form-group">
+                                    <label>名:</label>
+                                    <input type="text" v-model="lastName" placeholder="名">
+                                </div>
+                            </div>
+                            <div>
+                                <div class="form-group">
+                                    <label>温度 (摄氏度):</label>
+                                    <input type="number" v-model.number="celsius" placeholder="摄氏度">
+                                </div>
+                                <div class="form-group">
+                                    <label>温度 (华氏度):</label>
+                                    <input type="number" v-model.number="fahrenheit" placeholder="华氏度">
+                                </div>
+                                <div class="form-group">
+                                    <label>价格 (分):</label>
+                                    <input type="number" v-model.number="priceInCents" placeholder="价格(分)">
+                                </div>
+                                <div class="form-group">
+                                    <label>价格 (元):</label>
+                                    <input type="number" v-model.number="priceInYuan" step="0.01" placeholder="价格(元)">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="result-display">
+                            <h4>🔄 双向转换演示</h4>
+                            <div class="result-item"><strong>姓名解析:</strong> 姓="{{ firstName }}" + 名="{{ lastName }}" = "{{ fullName }}"</div>
+                            <div class="result-item"><strong>温度转换:</strong> {{ celsius }}°C = {{ fahrenheit }}°F</div>
+                            <div class="result-item"><strong>价格转换:</strong> {{ priceInCents }}分 = {{ priceInYuan }}元</div>
+                        </div>
+
+                        <div class="code-example">
+// 计算属性的 getter 和 setter
+const fullName = computed({
+  get() {
+    return `${firstName.value} ${lastName.value}`.trim()
+  },
+  set(value) {
+    const parts = value.split(' ')
+    firstName.value = parts[0] || ''
+    lastName.value = parts.slice(1).join(' ') || ''
+  }
+})
+
+const fahrenheit = computed({
+  get: () => celsius.value * 9/5 + 32,
+  set: (value) => celsius.value = (value - 32) * 5/9
+})
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 练习3：侦听器的停止和清理 -->
+                <div class="exercise">
+                    <h2 class="exercise-title">🛑 练习3：侦听器的停止和清理</h2>
+                    <p class="exercise-description">
+                        学习如何手动停止侦听器，避免内存泄漏和不必要的计算。
+                    </p>
+
+                    <div class="demo-container">
+                        <div class="tabs">
+                            <div class="tab" :class="{ active: activeTab === 'timer' }" @click="activeTab = 'timer'">
+                                定时器管理
+                            </div>
+                            <div class="tab" :class="{ active: activeTab === 'api' }" @click="activeTab = 'api'">
+                                API 监控
+                            </div>
+                            <div class="tab" :class="{ active: activeTab === 'logs' }" @click="activeTab = 'logs'">
+                                日志记录
+                            </div>
+                        </div>
+
+                        <div class="tab-content" :class="{ active: activeTab === 'timer' }">
+                            <div class="form-group">
+                                <label>计数器间隔 (毫秒):</label>
+                                <input type="number" v-model.number="timerInterval" min="100" max="5000" step="100">
+                            </div>
+                            <div class="form-group">
+                                <button class="btn" @click="startTimer" :disabled="timerRunning">启动计时器</button>
+                                <button class="btn danger" @click="stopTimer" :disabled="!timerRunning">停止计时器</button>
+                                <button class="btn" @click="resetTimer">重置计时器</button>
+                            </div>
+                            <div class="result-display">
+                                <h4>⏱️ 计时器状态</h4>
+                                <div class="result-item"><strong>当前计数:</strong> {{ timerCount }}</div>
+                                <div class="result-item"><strong>运行状态:</strong> {{ timerRunning ? '运行中' : '已停止' }}</div>
+                                <div class="result-item"><strong>活跃侦听器:</strong> {{ activeWatchers.length }}</div>
+                            </div>
+                        </div>
+
+                        <div class="tab-content" :class="{ active: activeTab === 'api' }">
+                            <div class="form-group">
+                                <label>API 端点:</label>
+                                <select v-model="selectedEndpoint">
+                                    <option value="">选择端点</option>
+                                    <option value="users">用户列表</option>
+                                    <option value="posts">文章列表</option>
+                                    <option value="comments">评论列表</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <button class="btn" @click="startApiMonitoring" :disabled="apiMonitoring">开始监控</button>
+                                <button class="btn danger" @click="stopApiMonitoring" :disabled="!apiMonitoring">停止监控</button>
+                            </div>
+                            <div class="result-display">
+                                <h4>🌐 API 监控状态</h4>
+                                <div class="result-item"><strong>监控状态:</strong> {{ apiMonitoring ? '监控中' : '已停止' }}</div>
+                                <div class="result-item"><strong>请求次数:</strong> {{ apiRequestCount }}</div>
+                                <div class="result-item"><strong>最后响应:</strong> {{ lastApiResponse }}</div>
+                            </div>
+                        </div>
+
+                        <div class="tab-content" :class="{ active: activeTab === 'logs' }">
+                            <div class="form-group">
+                                <button class="btn" @click="startLogging" :disabled="loggingActive">开始日志记录</button>
+                                <button class="btn danger" @click="stopLogging" :disabled="!loggingActive">停止日志记录</button>
+                                <button class="btn" @click="clearLogs">清空日志</button>
+                            </div>
+                            <div class="result-display">
+                                <h4>📝 系统日志</h4>
+                                <div style="max-height: 200px; overflow-y: auto; background: #f8f9fa; padding: 10px; border-radius: 5px;">
+                                    <div v-for="log in systemLogs" :key="log.id" style="font-family: monospace; font-size: 12px; margin: 2px 0;">
+                                        <span style="color: #636e72;">[{{ log.time }}]</span>
+                                        <span :style="{ color: getLogColor(log.level) }">[{{ log.level }}]</span>
+                                        {{ log.message }}
+                                    </div>
+                                    <div v-if="systemLogs.length === 0" style="text-align: center; color: #636e72;">
+                                        暂无日志记录
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="code-example">
+// 手动停止侦听器
+const stopWatcher = watch(source, callback)
+
+// 在需要时停止
+stopWatcher()
+
+// watchEffect 也返回停止函数
+const stopEffect = watchEffect(() => {
+  // 副作用逻辑
+})
+
+// 组件卸载时自动清理
+onUnmounted(() => {
+  activeWatchers.value.forEach(stop => stop())
+  activeWatchers.value = []
+})
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 练习4：复杂数据流管理 -->
+                <div class="exercise">
+                    <h2 class="exercise-title">🌊 练习4：复杂数据流管理</h2>
+                    <p class="exercise-description">
+                        综合运用计算属性和侦听器管理复杂的数据流和状态变化。
+                    </p>
+
+                    <div class="demo-container">
+                        <div class="form-grid">
+                            <div>
+                                <div class="form-group">
+                                    <label>数据源配置:</label>
+                                    <select v-model="dataSource" @change="resetDataFlow">
+                                        <option value="realtime">实时数据</option>
+                                        <option value="batch">批量数据</option>
+                                        <option value="cached">缓存数据</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>更新频率 (秒):</label>
+                                    <input type="range" v-model.number="updateFrequency" min="1" max="10" step="1">
+                                    <span>{{ updateFrequency }}秒</span>
+                                </div>
+                                <div class="form-group">
+                                    <label>数据过滤阈值:</label>
+                                    <input type="range" v-model.number="filterThreshold" min="0" max="100" step="5">
+                                    <span>{{ filterThreshold }}%</span>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="form-group">
+                                    <button class="btn" @click="startDataFlow" :disabled="dataFlowActive">启动数据流</button>
+                                    <button class="btn danger" @click="stopDataFlow" :disabled="!dataFlowActive">停止数据流</button>
+                                    <button class="btn" @click="pauseDataFlow" :disabled="!dataFlowActive || dataFlowPaused">暂停</button>
+                                    <button class="btn success" @click="resumeDataFlow" :disabled="!dataFlowPaused">恢复</button>
+                                </div>
+                                <div class="form-group">
+                                    <label>数据流状态:</label>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" :style="{ width: dataFlowProgress + '%' }"></div>
+                                    </div>
+                                    <span>{{ dataFlowProgress }}%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="chart-container">
+                            <h4>📈 数据流可视化</h4>
+                            <div class="chart-bar" v-for="item in chartData" :key="item.label">
+                                <div class="chart-label">{{ item.label }}</div>
+                                <div class="chart-bar-fill" :style="{ width: (item.value / maxChartValue * 200) + 'px' }"></div>
+                                <div class="chart-value">{{ item.value }}</div>
+                            </div>
+                        </div>
+
+                        <div class="result-display">
+                            <h4>📊 数据流统计</h4>
+                            <div class="result-item"><strong>原始数据点:</strong> {{ rawDataPoints.length }}</div>
+                            <div class="result-item"><strong>过滤后数据:</strong> {{ filteredDataPoints.length }}</div>
+                            <div class="result-item"><strong>平均值:</strong> {{ averageValue.toFixed(2) }}</div>
+                            <div class="result-item"><strong>最大值:</strong> {{ maxValue }}</div>
+                            <div class="result-item"><strong>最小值:</strong> {{ minValue }}</div>
+                            <div class="result-item"><strong>数据质量:</strong> {{ dataQuality }}%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 通知组件 -->
+                <div v-if="notification.show" class="notification" :class="[notification.type, { show: notification.show }]">
+                    {{ notification.message }}
+                </div>
+
+                <!-- 学习提示 -->
+                <div class="tips">
+                    <h4>💡 高级技巧</h4>
+                    <ul>
+                        <li><strong>watchEffect：</strong>自动追踪依赖，适合复杂的副作用逻辑</li>
+                        <li><strong>计算属性 setter：</strong>实现双向数据绑定和复杂转换</li>
+                        <li><strong>侦听器清理：</strong>避免内存泄漏，及时停止不需要的侦听器</li>
+                        <li><strong>flush 时机：</strong>控制侦听器的执行时机（pre、post、sync）</li>
+                        <li><strong>深度侦听：</strong>监控嵌套对象的变化，注意性能影响</li>
+                        <li><strong>立即执行：</strong>侦听器创建时立即执行一次</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, watch, watchEffect, onUnmounted } = Vue
+
+        createApp({
+            setup() {
+                // 用户设置相关
+                const userSettings = ref({
+                    username: 'user123',
+                    theme: 'light',
+                    language: 'zh',
+                    notifications: {
+                        email: true,
+                        push: false,
+                        sms: false
+                    },
+                    autoSaveInterval: 30
+                })
+
+                const settingsUpdateCount = ref(0)
+                const lastSaveTime = ref('')
+                const settingsHash = ref('')
+
+                // 姓名相关
+                const firstName = ref('张')
+                const lastName = ref('三')
+
+                // 温度相关
+                const celsius = ref(25)
+
+                // 价格相关
+                const priceInCents = ref(1000)
+
+                // 定时器相关
+                const timerInterval = ref(1000)
+                const timerCount = ref(0)
+                const timerRunning = ref(false)
+                const activeWatchers = ref([])
+
+                // API 监控相关
+                const selectedEndpoint = ref('')
+                const apiMonitoring = ref(false)
+                const apiRequestCount = ref(0)
+                const lastApiResponse = ref('')
+
+                // 日志相关
+                const loggingActive = ref(false)
+                const systemLogs = ref([])
+
+                // 数据流相关
+                const dataSource = ref('realtime')
+                const updateFrequency = ref(2)
+                const filterThreshold = ref(50)
+                const dataFlowActive = ref(false)
+                const dataFlowPaused = ref(false)
+                const dataFlowProgress = ref(0)
+                const rawDataPoints = ref([])
+
+                // 标签页
+                const activeTab = ref('timer')
+
+                // 通知
+                const notification = ref({
+                    show: false,
+                    type: 'success',
+                    message: ''
+                })
+
+                // 计算属性 - 启用的通知
+                const enabledNotifications = computed(() => {
+                    const notifications = userSettings.value.notifications
+                    return Object.keys(notifications).filter(key => notifications[key])
+                })
+
+                // 计算属性 - 全名（getter/setter）
+                const fullName = computed({
+                    get() {
+                        return `${firstName.value} ${lastName.value}`.trim()
+                    },
+                    set(value) {
+                        const parts = value.split(' ')
+                        firstName.value = parts[0] || ''
+                        lastName.value = parts.slice(1).join(' ') || ''
+                    }
+                })
+
+                // 计算属性 - 华氏度（getter/setter）
+                const fahrenheit = computed({
+                    get() {
+                        return Math.round((celsius.value * 9/5 + 32) * 100) / 100
+                    },
+                    set(value) {
+                        celsius.value = Math.round(((value - 32) * 5/9) * 100) / 100
+                    }
+                })
+
+                // 计算属性 - 价格转换（getter/setter）
+                const priceInYuan = computed({
+                    get() {
+                        return Math.round(priceInCents.value / 100 * 100) / 100
+                    },
+                    set(value) {
+                        priceInCents.value = Math.round(value * 100)
+                    }
+                })
+
+                // 计算属性 - 过滤后的数据
+                const filteredDataPoints = computed(() => {
+                    return rawDataPoints.value.filter(point => point.value >= filterThreshold.value)
+                })
+
+                // 计算属性 - 统计信息
+                const averageValue = computed(() => {
+                    if (filteredDataPoints.value.length === 0) return 0
+                    const sum = filteredDataPoints.value.reduce((acc, point) => acc + point.value, 0)
+                    return sum / filteredDataPoints.value.length
+                })
+
+                const maxValue = computed(() => {
+                    if (filteredDataPoints.value.length === 0) return 0
+                    return Math.max(...filteredDataPoints.value.map(p => p.value))
+                })
+
+                const minValue = computed(() => {
+                    if (filteredDataPoints.value.length === 0) return 0
+                    return Math.min(...filteredDataPoints.value.map(p => p.value))
+                })
+
+                const dataQuality = computed(() => {
+                    if (rawDataPoints.value.length === 0) return 100
+                    return Math.round((filteredDataPoints.value.length / rawDataPoints.value.length) * 100)
+                })
+
+                // 计算属性 - 图表数据
+                const chartData = computed(() => {
+                    const recent = filteredDataPoints.value.slice(-5)
+                    return recent.map((point, index) => ({
+                        label: `数据${index + 1}`,
+                        value: point.value
+                    }))
+                })
+
+                const maxChartValue = computed(() => {
+                    if (chartData.value.length === 0) return 100
+                    return Math.max(...chartData.value.map(item => item.value))
+                })
+
+                // watchEffect - 自动追踪用户设置变化
+                watchEffect(() => {
+                    // 自动追踪 userSettings 的所有变化
+                    const hash = generateHash(JSON.stringify(userSettings.value))
+                    settingsHash.value = hash
+                    settingsUpdateCount.value++
+                    
+                    // 自动保存到 localStorage
+                    try {
+                        localStorage.setItem('userSettings', JSON.stringify(userSettings.value))
+                        lastSaveTime.value = new Date().toLocaleTimeString()
+                    } catch (error) {
+                        console.error('保存设置失败:', error)
+                    }
+                })
+
+                // 侦听器 - 数据源变化
+                watch(dataSource, (newSource) => {
+                    showNotification('success', `数据源已切换到: ${newSource}`)
+                    addLog('INFO', `数据源切换: ${newSource}`)
+                })
+
+                // 侦听器 - 过滤阈值变化
+                watch(filterThreshold, (newThreshold) => {
+                    addLog('DEBUG', `过滤阈值更新: ${newThreshold}%`)
+                })
+
+                // 方法
+                const generateHash = (str) => {
+                    let hash = 0
+                    for (let i = 0; i < str.length; i++) {
+                        const char = str.charCodeAt(i)
+                        hash = ((hash << 5) - hash) + char
+                        hash = hash & hash // 转换为32位整数
+                    }
+                    return Math.abs(hash).toString(16).substring(0, 8)
+                }
+
+                const showNotification = (type, message) => {
+                    notification.value = { show: true, type, message }
+                    setTimeout(() => {
+                        notification.value.show = false
+                    }, 3000)
+                }
+
+                const addLog = (level, message) => {
+                    if (!loggingActive.value) return
+                    
+                    const log = {
+                        id: Date.now(),
+                        time: new Date().toLocaleTimeString(),
+                        level,
+                        message
+                    }
+                    systemLogs.value.unshift(log)
+                    
+                    // 只保留最近100条日志
+                    if (systemLogs.value.length > 100) {
+                        systemLogs.value = systemLogs.value.slice(0, 100)
+                    }
+                }
+
+                const getLogColor = (level) => {
+                    const colors = {
+                        'ERROR': '#e17055',
+                        'WARN': '#fdcb6e',
+                        'INFO': '#74b9ff',
+                        'DEBUG': '#636e72'
+                    }
+                    return colors[level] || '#2d3436'
+                }
+
+                // 定时器方法
+                const startTimer = () => {
+                    if (timerRunning.value) return
+                    
+                    timerRunning.value = true
+                    const stopWatcher = watch(timerInterval, () => {
+                        if (timerRunning.value) {
+                            stopTimer()
+                            startTimer()
+                        }
+                    })
+                    activeWatchers.value.push(stopWatcher)
+                    
+                    const interval = setInterval(() => {
+                        if (!timerRunning.value) {
+                            clearInterval(interval)
+                            return
+                        }
+                        timerCount.value++
+                        addLog('DEBUG', `计时器计数: ${timerCount.value}`)
+                    }, timerInterval.value)
+                    
+                    showNotification('success', '计时器已启动')
+                    addLog('INFO', '计时器启动')
+                }
+
+                const stopTimer = () => {
+                    timerRunning.value = false
+                    showNotification('warning', '计时器已停止')
+                    addLog('INFO', '计时器停止')
+                }
+
+                const resetTimer = () => {
+                    timerCount.value = 0
+                    showNotification('success', '计时器已重置')
+                    addLog('INFO', '计时器重置')
+                }
+
+                // API 监控方法
+                const startApiMonitoring = () => {
+                    if (!selectedEndpoint.value) {
+                        showNotification('error', '请先选择API端点')
+                        return
+                    }
+                    
+                    apiMonitoring.value = true
+                    const stopWatcher = watch(selectedEndpoint, (newEndpoint) => {
+                        if (newEndpoint) {
+                            addLog('INFO', `API端点切换: ${newEndpoint}`)
+                        }
+                    })
+                    activeWatchers.value.push(stopWatcher)
+                    
+                    const interval = setInterval(() => {
+                        if (!apiMonitoring.value) {
+                            clearInterval(interval)
+                            return
+                        }
+                        
+                        apiRequestCount.value++
+                        lastApiResponse.value = `${selectedEndpoint.value} - ${new Date().toLocaleTimeString()}`
+                        addLog('DEBUG', `API请求: ${selectedEndpoint.value}`)
+                    }, 3000)
+                    
+                    showNotification('success', 'API监控已启动')
+                    addLog('INFO', 'API监控启动')
+                }
+
+                const stopApiMonitoring = () => {
+                    apiMonitoring.value = false
+                    showNotification('warning', 'API监控已停止')
+                    addLog('INFO', 'API监控停止')
+                }
+
+                // 日志方法
+                const startLogging = () => {
+                    loggingActive.value = true
+                    showNotification('success', '日志记录已启动')
+                    addLog('INFO', '系统日志记录启动')
+                }
+
+                const stopLogging = () => {
+                    addLog('INFO', '系统日志记录停止')
+                    loggingActive.value = false
+                    showNotification('warning', '日志记录已停止')
+                }
+
+                const clearLogs = () => {
+                    systemLogs.value = []
+                    showNotification('success', '日志已清空')
+                }
+
+                // 数据流方法
+                const startDataFlow = () => {
+                    dataFlowActive.value = true
+                    dataFlowPaused.value = false
+                    dataFlowProgress.value = 0
+                    
+                    const interval = setInterval(() => {
+                        if (!dataFlowActive.value || dataFlowPaused.value) {
+                            if (!dataFlowActive.value) clearInterval(interval)
+                            return
+                        }
+                        
+                        // 生成模拟数据
+                        const newPoint = {
+                            id: Date.now(),
+                            value: Math.round(Math.random() * 100),
+                            timestamp: new Date().toLocaleTimeString()
+                        }
+                        rawDataPoints.value.push(newPoint)
+                        
+                        // 只保留最近50个数据点
+                        if (rawDataPoints.value.length > 50) {
+                            rawDataPoints.value = rawDataPoints.value.slice(-50)
+                        }
+                        
+                        dataFlowProgress.value = Math.min(dataFlowProgress.value + 2, 100)
+                        addLog('DEBUG', `数据点生成: ${newPoint.value}`)
+                    }, updateFrequency.value * 1000)
+                    
+                    showNotification('success', '数据流已启动')
+                    addLog('INFO', '数据流启动')
+                }
+
+                const stopDataFlow = () => {
+                    dataFlowActive.value = false
+                    dataFlowPaused.value = false
+                    showNotification('warning', '数据流已停止')
+                    addLog('INFO', '数据流停止')
+                }
+
+                const pauseDataFlow = () => {
+                    dataFlowPaused.value = true
+                    showNotification('warning', '数据流已暂停')
+                    addLog('INFO', '数据流暂停')
+                }
+
+                const resumeDataFlow = () => {
+                    dataFlowPaused.value = false
+                    showNotification('success', '数据流已恢复')
+                    addLog('INFO', '数据流恢复')
+                }
+
+                const resetDataFlow = () => {
+                    rawDataPoints.value = []
+                    dataFlowProgress.value = 0
+                    addLog('INFO', '数据流重置')
+                }
+
+                // 清理函数
+                onUnmounted(() => {
+                    activeWatchers.value.forEach(stop => stop())
+                    activeWatchers.value = []
+                })
+
+                return {
+                    // 用户设置
+                    userSettings,
+                    settingsUpdateCount,
+                    lastSaveTime,
+                    settingsHash,
+                    enabledNotifications,
+                    
+                    // 姓名
+                    firstName,
+                    lastName,
+                    fullName,
+                    
+                    // 温度
+                    celsius,
+                    fahrenheit,
+                    
+                    // 价格
+                    priceInCents,
+                    priceInYuan,
+                    
+                    // 定时器
+                    timerInterval,
+                    timerCount,
+                    timerRunning,
+                    activeWatchers,
+                    startTimer,
+                    stopTimer,
+                    resetTimer,
+                    
+                    // API 监控
+                    selectedEndpoint,
+                    apiMonitoring,
+                    apiRequestCount,
+                    lastApiResponse,
+                    startApiMonitoring,
+                    stopApiMonitoring,
+                    
+                    // 日志
+                    loggingActive,
+                    systemLogs,
+                    startLogging,
+                    stopLogging,
+                    clearLogs,
+                    getLogColor,
+                    
+                    // 数据流
+                    dataSource,
+                    updateFrequency,
+                    filterThreshold,
+                    dataFlowActive,
+                    dataFlowPaused,
+                    dataFlowProgress,
+                    rawDataPoints,
+                    filteredDataPoints,
+                    averageValue,
+                    maxValue,
+                    minValue,
+                    dataQuality,
+                    chartData,
+                    maxChartValue,
+                    startDataFlow,
+                    stopDataFlow,
+                    pauseDataFlow,
+                    resumeDataFlow,
+                    resetDataFlow,
+                    
+                    // UI
+                    activeTab,
+                    notification
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>

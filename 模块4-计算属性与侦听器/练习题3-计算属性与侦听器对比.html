@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>练习题3：计算属性与侦听器对比 - Vue3</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .comparison-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            border-left: 5px solid #74b9ff;
+        }
+
+        .comparison-card.watch {
+            border-left-color: #e17055;
+        }
+
+        .comparison-card.method {
+            border-left-color: #00b894;
+        }
+
+        .card-title {
+            font-size: 1.4em;
+            color: #2d3436;
+            margin-bottom: 15px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+
+        .card-title .icon {
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .exercise {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-left: 5px solid #74b9ff;
+        }
+
+        .exercise-title {
+            font-size: 1.4em;
+            color: #2d3436;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .exercise-description {
+            color: #636e72;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .demo-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #e9ecef;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2d3436;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #74b9ff;
+        }
+
+        .result-display {
+            background: #e8f4fd;
+            border: 1px solid #74b9ff;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .result-display h4 {
+            color: #0984e3;
+            margin-bottom: 10px;
+        }
+
+        .result-item {
+            margin: 5px 0;
+            color: #2d3436;
+        }
+
+        .performance-counter {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 14px;
+            color: #856404;
+        }
+
+        .btn {
+            background: #74b9ff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            background: #0984e3;
+        }
+
+        .btn.danger {
+            background: #e17055;
+        }
+
+        .btn.danger:hover {
+            background: #d63031;
+        }
+
+        .btn.success {
+            background: #00b894;
+        }
+
+        .btn.success:hover {
+            background: #00a085;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .data-table th,
+        .data-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .data-table th {
+            background: #74b9ff;
+            color: white;
+            font-weight: bold;
+        }
+
+        .data-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .data-table tr:hover {
+            background: #e8f4fd;
+        }
+
+        .filter-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-controls select {
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .filter-controls select:focus {
+            outline: none;
+            border-color: #74b9ff;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #74b9ff;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #636e72;
+            font-size: 14px;
+        }
+
+        .tips {
+            background: #e8f4fd;
+            border: 1px solid #74b9ff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .tips h4 {
+            color: #0984e3;
+            margin-bottom: 10px;
+        }
+
+        .tips ul {
+            color: #636e72;
+            padding-left: 20px;
+        }
+
+        .tips li {
+            margin-bottom: 5px;
+        }
+
+        .code-example {
+            background: #2d3436;
+            color: #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 4px;
+            border-radius: 3px;
+            color: #856404;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <div class="header">
+                <h1>⚖️ 练习题3：计算属性与侦听器对比</h1>
+                <p>深入理解三者的区别与最佳使用场景</p>
+            </div>
+
+            <div class="content">
+                <!-- 对比说明 -->
+                <div class="comparison-grid">
+                    <div class="comparison-card">
+                        <h3 class="card-title">
+                            <span class="icon">🧮</span>
+                            计算属性 (Computed)
+                        </h3>
+                        <ul>
+                            <li><strong>缓存机制：</strong>基于依赖缓存，依赖不变时不重新计算</li>
+                            <li><strong>使用场景：</strong>复杂逻辑计算、数据转换、过滤排序</li>
+                            <li><strong>性能：</strong>高效，避免重复计算</li>
+                            <li><strong>返回值：</strong>必须有返回值</li>
+                        </ul>
+                    </div>
+
+                    <div class="comparison-card watch">
+                        <h3 class="card-title">
+                            <span class="icon">👀</span>
+                            侦听器 (Watch)
+                        </h3>
+                        <ul>
+                            <li><strong>响应机制：</strong>数据变化时执行回调函数</li>
+                            <li><strong>使用场景：</strong>异步操作、副作用、复杂业务逻辑</li>
+                            <li><strong>性能：</strong>每次变化都执行</li>
+                            <li><strong>返回值：</strong>无需返回值</li>
+                        </ul>
+                    </div>
+
+                    <div class="comparison-card method">
+                        <h3 class="card-title">
+                            <span class="icon">⚡</span>
+                            方法 (Methods)
+                        </h3>
+                        <ul>
+                            <li><strong>执行机制：</strong>每次调用都执行</li>
+                            <li><strong>使用场景：</strong>事件处理、用户交互、一次性操作</li>
+                            <li><strong>性能：</strong>无缓存，每次都重新执行</li>
+                            <li><strong>返回值：</strong>可选</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- 练习1：性能对比演示 -->
+                <div class="exercise">
+                    <h2 class="exercise-title">🚀 练习1：性能对比演示</h2>
+                    <p class="exercise-description">
+                        通过实际例子对比计算属性、侦听器和方法的性能差异。
+                    </p>
+
+                    <div class="demo-container">
+                        <div class="input-group">
+                            <label>输入数字 (用于计算平方):</label>
+                            <input type="number" v-model.number="numberInput" placeholder="请输入数字">
+                        </div>
+
+                        <div class="result-display">
+                            <h4>📊 计算结果对比</h4>
+                            <div class="result-item">
+                                <strong>计算属性结果:</strong> {{ computedSquare }}
+                                <span class="highlight">调用次数: {{ computedCallCount }}</span>
+                            </div>
+                            <div class="result-item">
+                                <strong>方法结果:</strong> {{ methodSquare() }}
+                                <span class="highlight">调用次数: {{ methodCallCount }}</span>
+                            </div>
+                            <div class="result-item">
+                                <strong>侦听器结果:</strong> {{ watchedSquare }}
+                                <span class="highlight">执行次数: {{ watchCallCount }}</span>
+                            </div>
+                        </div>
+
+                        <div class="performance-counter">
+                            <strong>性能提示:</strong> 计算属性有缓存机制，只在依赖变化时重新计算。
+                            方法每次调用都会执行。侦听器在数据变化时执行。
+                        </div>
+
+                        <button class="btn" @click="triggerRerender">触发重新渲染</button>
+                        <button class="btn danger" @click="resetCounters">重置计数器</button>
+                    </div>
+                </div>
+
+                <!-- 练习2：数据过滤与搜索 -->
+                <div class="exercise">
+                    <h2 class="exercise-title">🔍 练习2：数据过滤与搜索系统</h2>
+                    <p class="exercise-description">
+                        使用计算属性实现高效的数据过滤，使用侦听器处理搜索历史。
+                    </p>
+
+                    <div class="demo-container">
+                        <div class="filter-controls">
+                            <input 
+                                type="text" 
+                                v-model="searchKeyword" 
+                                placeholder="搜索商品名称..."
+                                style="flex: 1; min-width: 200px;"
+                            >
+                            <select v-model="selectedCategory">
+                                <option value="">所有分类</option>
+                                <option value="电子产品">电子产品</option>
+                                <option value="服装">服装</option>
+                                <option value="图书">图书</option>
+                                <option value="食品">食品</option>
+                            </select>
+                            <select v-model="priceRange">
+                                <option value="">所有价格</option>
+                                <option value="0-100">0-100元</option>
+                                <option value="100-500">100-500元</option>
+                                <option value="500-1000">500-1000元</option>
+                                <option value="1000+">1000元以上</option>
+                            </select>
+                            <select v-model="sortBy">
+                                <option value="name">按名称排序</option>
+                                <option value="price-asc">价格从低到高</option>
+                                <option value="price-desc">价格从高到低</option>
+                                <option value="rating">按评分排序</option>
+                            </select>
+                        </div>
+
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value">{{ filteredProducts.length }}</div>
+                                <div class="stat-label">搜索结果</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">{{ averagePrice }}</div>
+                                <div class="stat-label">平均价格</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">{{ highRatingCount }}</div>
+                                <div class="stat-label">高评分商品</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">{{ searchHistory.length }}</div>
+                                <div class="stat-label">搜索历史</div>
+                            </div>
+                        </div>
+
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>商品名称</th>
+                                    <th>分类</th>
+                                    <th>价格</th>
+                                    <th>评分</th>
+                                    <th>库存</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="product in paginatedProducts" :key="product.id">
+                                    <td>{{ product.name }}</td>
+                                    <td>{{ product.category }}</td>
+                                    <td>¥{{ product.price }}</td>
+                                    <td>{{ product.rating }}⭐</td>
+                                    <td>{{ product.stock }}</td>
+                                </tr>
+                                <tr v-if="filteredProducts.length === 0">
+                                    <td colspan="5" style="text-align: center; color: #636e72;">
+                                        没有找到符合条件的商品
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div style="text-align: center; margin-top: 20px;">
+                            <button 
+                                class="btn" 
+                                @click="currentPage--" 
+                                :disabled="currentPage <= 1"
+                            >
+                                上一页
+                            </button>
+                            <span style="margin: 0 15px;">第 {{ currentPage }} 页，共 {{ totalPages }} 页</span>
+                            <button 
+                                class="btn" 
+                                @click="currentPage++" 
+                                :disabled="currentPage >= totalPages"
+                            >
+                                下一页
+                            </button>
+                        </div>
+
+                        <div class="result-display" v-if="searchHistory.length > 0">
+                            <h4>🕒 搜索历史</h4>
+                            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                                <span 
+                                    v-for="(term, index) in searchHistory.slice(0, 10)" 
+                                    :key="index"
+                                    style="background: #74b9ff; color: white; padding: 5px 10px; border-radius: 15px; font-size: 12px; cursor: pointer;"
+                                    @click="searchKeyword = term"
+                                >
+                                    {{ term }}
+                                </span>
+                            </div>
+                            <button class="btn danger" @click="clearSearchHistory" style="margin-top: 10px;">
+                                清空历史
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 练习3：异步数据处理 -->
+                <div class="exercise">
+                    <h2 class="exercise-title">🌐 练习3：异步数据处理</h2>
+                    <p class="exercise-description">
+                        使用侦听器处理异步操作，计算属性处理数据展示。
+                    </p>
+
+                    <div class="demo-container">
+                        <div class="input-group">
+                            <label>用户ID (1-10):</label>
+                            <input type="number" v-model.number="userId" min="1" max="10" placeholder="输入用户ID">
+                        </div>
+
+                        <div class="result-display" v-if="userLoading">
+                            <h4>⏳ 正在加载用户信息...</h4>
+                        </div>
+
+                        <div class="result-display" v-else-if="currentUser">
+                            <h4>👤 用户信息</h4>
+                            <div class="result-item"><strong>姓名:</strong> {{ currentUser.name }}</div>
+                            <div class="result-item"><strong>邮箱:</strong> {{ currentUser.email }}</div>
+                            <div class="result-item"><strong>公司:</strong> {{ currentUser.company }}</div>
+                            <div class="result-item"><strong>地址:</strong> {{ userFullAddress }}</div>
+                            <div class="result-item"><strong>账户状态:</strong> {{ userAccountStatus }}</div>
+                        </div>
+
+                        <div class="result-display" v-if="userError">
+                            <h4 style="color: #e17055;">❌ 加载失败</h4>
+                            <div>{{ userError }}</div>
+                        </div>
+
+                        <div class="code-example">
+<!-- // 侦听器处理异步操作 -->
+watch(userId, async (newId) => {
+  if (newId && newId >= 1 && newId <= 10) {
+    userLoading.value = true
+    userError.value = ''
+    try {
+      // 模拟API调用
+      const response = await fetchUser(newId)
+      currentUser.value = response
+    } catch (error) {
+      userError.value = error.message
+    } finally {
+      userLoading.value = false
+    }
+  }
+})
+
+// 计算属性处理数据展示
+const userFullAddress = computed(() => {
+  if (!currentUser.value?.address) return ''
+  const addr = currentUser.value.address
+  return `${addr.city}, ${addr.street} ${addr.suite}`
+})
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 学习提示 -->
+                <div class="tips">
+                    <h4>💡 选择指南</h4>
+                    <ul>
+                        <li><strong>使用计算属性当：</strong>
+                            <ul>
+                                <li>需要基于现有数据计算新值</li>
+                                <li>计算逻辑复杂且可能被多次调用</li>
+                                <li>需要缓存机制提高性能</li>
+                                <li>数据转换、过滤、排序等场景</li>
+                            </ul>
+                        </li>
+                        <li><strong>使用侦听器当：</strong>
+                            <ul>
+                                <li>需要执行异步操作</li>
+                                <li>需要访问DOM或执行副作用</li>
+                                <li>数据变化时需要执行复杂的业务逻辑</li>
+                                <li>需要监控多个数据源的变化</li>
+                            </ul>
+                        </li>
+                        <li><strong>使用方法当：</strong>
+                            <ul>
+                                <li>处理用户交互事件</li>
+                                <li>执行一次性操作</li>
+                                <li>需要传递参数</li>
+                                <li>不需要缓存的简单计算</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, watch, onMounted } = Vue
+
+        createApp({
+            setup() {
+                // 性能对比相关数据
+                const numberInput = ref(5)
+                const computedCallCount = ref(0)
+                const methodCallCount = ref(0)
+                const watchCallCount = ref(0)
+                const watchedSquare = ref(25)
+                const rerenderTrigger = ref(0)
+
+                // 商品数据
+                const searchKeyword = ref('')
+                const selectedCategory = ref('')
+                const priceRange = ref('')
+                const sortBy = ref('name')
+                const currentPage = ref(1)
+                const pageSize = 5
+                const searchHistory = ref([])
+
+                // 用户数据
+                const userId = ref(1)
+                const currentUser = ref(null)
+                const userLoading = ref(false)
+                const userError = ref('')
+
+                // 模拟商品数据
+                const products = ref([
+                    { id: 1, name: 'iPhone 15 Pro', category: '电子产品', price: 7999, rating: 4.8, stock: 50 },
+                    { id: 2, name: 'MacBook Air M2', category: '电子产品', price: 8999, rating: 4.9, stock: 30 },
+                    { id: 3, name: '连衣裙', category: '服装', price: 299, rating: 4.5, stock: 100 },
+                    { id: 4, name: 'Vue.js权威指南', category: '图书', price: 89, rating: 4.7, stock: 200 },
+                    { id: 5, name: '有机苹果', category: '食品', price: 25, rating: 4.3, stock: 500 },
+                    { id: 6, name: 'AirPods Pro', category: '电子产品', price: 1999, rating: 4.6, stock: 80 },
+                    { id: 7, name: '牛仔裤', category: '服装', price: 199, rating: 4.4, stock: 150 },
+                    { id: 8, name: 'JavaScript高级程序设计', category: '图书', price: 129, rating: 4.8, stock: 120 },
+                    { id: 9, name: '进口牛肉', category: '食品', price: 168, rating: 4.6, stock: 80 },
+                    { id: 10, name: 'iPad Pro', category: '电子产品', price: 6999, rating: 4.7, stock: 40 },
+                    { id: 11, name: '羽绒服', category: '服装', price: 899, rating: 4.5, stock: 60 },
+                    { id: 12, name: '深入理解计算机系统', category: '图书', price: 139, rating: 4.9, stock: 90 }
+                ])
+
+                // 计算属性 - 性能演示
+                const computedSquare = computed(() => {
+                    computedCallCount.value++
+                    console.log('计算属性被调用:', computedCallCount.value)
+                    return numberInput.value * numberInput.value
+                })
+
+                // 方法 - 性能演示
+                const methodSquare = () => {
+                    methodCallCount.value++
+                    console.log('方法被调用:', methodCallCount.value)
+                    return numberInput.value * numberInput.value
+                }
+
+                // 计算属性 - 数据过滤
+                const filteredProducts = computed(() => {
+                    let result = products.value
+
+                    // 关键词搜索
+                    if (searchKeyword.value) {
+                        result = result.filter(product => 
+                            product.name.toLowerCase().includes(searchKeyword.value.toLowerCase())
+                        )
+                    }
+
+                    // 分类过滤
+                    if (selectedCategory.value) {
+                        result = result.filter(product => product.category === selectedCategory.value)
+                    }
+
+                    // 价格范围过滤
+                    if (priceRange.value) {
+                        const [min, max] = priceRange.value.split('-').map(v => v === '+' ? Infinity : parseInt(v))
+                        result = result.filter(product => {
+                            if (priceRange.value === '1000+') {
+                                return product.price >= 1000
+                            }
+                            return product.price >= min && product.price <= max
+                        })
+                    }
+
+                    // 排序
+                    switch (sortBy.value) {
+                        case 'price-asc':
+                            result.sort((a, b) => a.price - b.price)
+                            break
+                        case 'price-desc':
+                            result.sort((a, b) => b.price - a.price)
+                            break
+                        case 'rating':
+                            result.sort((a, b) => b.rating - a.rating)
+                            break
+                        default:
+                            result.sort((a, b) => a.name.localeCompare(b.name))
+                    }
+
+                    return result
+                })
+
+                // 计算属性 - 分页
+                const totalPages = computed(() => {
+                    return Math.ceil(filteredProducts.value.length / pageSize)
+                })
+
+                const paginatedProducts = computed(() => {
+                    const start = (currentPage.value - 1) * pageSize
+                    const end = start + pageSize
+                    return filteredProducts.value.slice(start, end)
+                })
+
+                // 计算属性 - 统计信息
+                const averagePrice = computed(() => {
+                    if (filteredProducts.value.length === 0) return '0'
+                    const total = filteredProducts.value.reduce((sum, product) => sum + product.price, 0)
+                    return `¥${Math.round(total / filteredProducts.value.length)}`
+                })
+
+                const highRatingCount = computed(() => {
+                    return filteredProducts.value.filter(product => product.rating >= 4.5).length
+                })
+
+                // 计算属性 - 用户信息
+                const userFullAddress = computed(() => {
+                    if (!currentUser.value?.address) return ''
+                    const addr = currentUser.value.address
+                    return `${addr.city}, ${addr.street} ${addr.suite}`
+                })
+
+                const userAccountStatus = computed(() => {
+                    if (!currentUser.value) return ''
+                    const user = currentUser.value
+                    if (user.email && user.phone) {
+                        return '✅ 已验证'
+                    } else {
+                        return '⚠️ 待验证'
+                    }
+                })
+
+                // 侦听器 - 性能演示
+                watch(numberInput, (newValue) => {
+                    watchCallCount.value++
+                    watchedSquare.value = newValue * newValue
+                    console.log('侦听器被执行:', watchCallCount.value)
+                })
+
+                // 侦听器 - 搜索历史
+                watch(searchKeyword, (newKeyword, oldKeyword) => {
+                    if (newKeyword && newKeyword.trim() && newKeyword !== oldKeyword) {
+                        // 添加到搜索历史
+                        if (!searchHistory.value.includes(newKeyword.trim())) {
+                            searchHistory.value.unshift(newKeyword.trim())
+                            // 只保留最近20个搜索记录
+                            if (searchHistory.value.length > 20) {
+                                searchHistory.value = searchHistory.value.slice(0, 20)
+                            }
+                        }
+                    }
+                    // 重置页码
+                    currentPage.value = 1
+                })
+
+                // 侦听器 - 过滤条件变化
+                watch([selectedCategory, priceRange, sortBy], () => {
+                    currentPage.value = 1
+                })
+
+                // 侦听器 - 异步用户数据
+                watch(userId, async (newId) => {
+                    if (newId && newId >= 1 && newId <= 10) {
+                        userLoading.value = true
+                        userError.value = ''
+                        currentUser.value = null
+                        
+                        try {
+                            // 模拟API调用延迟
+                            await new Promise(resolve => setTimeout(resolve, 1000))
+                            
+                            const userData = await fetchUser(newId)
+                            currentUser.value = userData
+                        } catch (error) {
+                            userError.value = error.message
+                        } finally {
+                            userLoading.value = false
+                        }
+                    } else {
+                        currentUser.value = null
+                        userError.value = ''
+                    }
+                }, { immediate: true })
+
+                // 方法
+                const triggerRerender = () => {
+                    rerenderTrigger.value++
+                    console.log('触发重新渲染')
+                }
+
+                const resetCounters = () => {
+                    computedCallCount.value = 0
+                    methodCallCount.value = 0
+                    watchCallCount.value = 0
+                }
+
+                const clearSearchHistory = () => {
+                    searchHistory.value = []
+                }
+
+                // 模拟用户API
+                const fetchUser = async (id) => {
+                    const users = [
+                        { id: 1, name: '张三', email: 'zhangsan@example.com', phone: '13800138001', company: '阿里巴巴', address: { city: '杭州', street: '文三路', suite: '969号' } },
+                        { id: 2, name: '李四', email: 'lisi@example.com', phone: '13800138002', company: '腾讯', address: { city: '深圳', street: '科技园', suite: '大厦A座' } },
+                        { id: 3, name: '王五', email: 'wangwu@example.com', phone: '', company: '百度', address: { city: '北京', street: '中关村', suite: '科技大厦' } },
+                        { id: 4, name: '赵六', email: 'zhaoliu@example.com', phone: '13800138004', company: '字节跳动', address: { city: '北京', street: '望京', suite: 'SOHO' } },
+                        { id: 5, name: '钱七', email: '', phone: '13800138005', company: '美团', address: { city: '北京', street: '朝阳区', suite: '总部大楼' } },
+                        { id: 6, name: '孙八', email: 'sunba@example.com', phone: '13800138006', company: '滴滴', address: { city: '北京', street: '海淀区', suite: '创业大厦' } },
+                        { id: 7, name: '周九', email: 'zhoujiu@example.com', phone: '', company: '小米', address: { city: '北京', street: '亦庄', suite: '科技园' } },
+                        { id: 8, name: '吴十', email: 'wushi@example.com', phone: '13800138008', company: '华为', address: { city: '深圳', street: '坂田', suite: '总部基地' } },
+                        { id: 9, name: '郑一', email: 'zhengyi@example.com', phone: '13800138009', company: '网易', address: { city: '杭州', street: '滨江区', suite: '网易大厦' } },
+                        { id: 10, name: '陈二', email: 'chener@example.com', phone: '13800138010', company: '京东', address: { city: '北京', street: '大兴区', suite: '总部园区' } }
+                    ]
+
+                    const user = users.find(u => u.id === id)
+                    if (!user) {
+                        throw new Error('用户不存在')
+                    }
+
+                    // 模拟网络错误
+                    if (Math.random() < 0.1) {
+                        throw new Error('网络连接失败')
+                    }
+
+                    return user
+                }
+
+                return {
+                    // 性能对比
+                    numberInput,
+                    computedSquare,
+                    methodSquare,
+                    watchedSquare,
+                    computedCallCount,
+                    methodCallCount,
+                    watchCallCount,
+                    triggerRerender,
+                    resetCounters,
+                    
+                    // 数据过滤
+                    searchKeyword,
+                    selectedCategory,
+                    priceRange,
+                    sortBy,
+                    currentPage,
+                    filteredProducts,
+                    paginatedProducts,
+                    totalPages,
+                    averagePrice,
+                    highRatingCount,
+                    searchHistory,
+                    clearSearchHistory,
+                    
+                    // 用户数据
+                    userId,
+                    currentUser,
+                    userLoading,
+                    userError,
+                    userFullAddress,
+                    userAccountStatus
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>
