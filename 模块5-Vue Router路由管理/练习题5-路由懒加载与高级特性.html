@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue Router 路由懒加载与高级特性练习</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/vue-router@4/dist/vue-router.global.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        #app {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.router-link-active {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .nav-links a.loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: 8px;
+            width: 12px;
+            height: 12px;
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .performance-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .performance-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .performance-good {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .performance-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .performance-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            margin: 0.25rem;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+            transform: translateY(-2px);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+
+        .feature-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+
+        .feature-enabled {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .feature-disabled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .route-transition {
+            transition: all 0.3s ease;
+        }
+
+        .route-enter-active,
+        .route-leave-active {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .route-enter-from {
+            opacity: 0;
+            transform: translateX(30px);
+        }
+
+        .route-leave-to {
+            opacity: 0;
+            transform: translateX(-30px);
+        }
+
+        .breadcrumb {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        @media (max-width: 768px) {
+            .nav {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <header class="header">
+            <nav class="nav">
+                <div class="logo">🚀 路由懒加载系统</div>
+                <ul class="nav-links">
+                    <li><router-link to="/">首页</router-link></li>
+                    <li><router-link to="/dashboard" :class="{ loading: isLoading('/dashboard') }">仪表板</router-link></li>
+                    <li><router-link to="/products" :class="{ loading: isLoading('/products') }">产品管理</router-link></li>
+                    <li><router-link to="/analytics" :class="{ loading: isLoading('/analytics') }">数据分析</router-link></li>
+                    <li><router-link to="/settings" :class="{ loading: isLoading('/settings') }">系统设置</router-link></li>
+                    <li><router-link to="/docs" :class="{ loading: isLoading('/docs') }">文档中心</router-link></li>
+                </ul>
+                <div class="performance-info">
+                    <span>加载时间: {{ loadTime }}ms</span>
+                    <span class="performance-badge" :class="getPerformanceClass(loadTime)">
+                        {{ getPerformanceText(loadTime) }}
+                    </span>
+                </div>
+            </nav>
+        </header>
+
+        <main class="main-content">
+            <!-- 加载状态 -->
+            <div v-if="globalLoading" class="loading-overlay">
+                <div class="loading-content">
+                    <div class="spinner"></div>
+                    <h3>正在加载组件...</h3>
+                    <p>{{ loadingMessage }}</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" :style="{ width: loadingProgress + '%' }"></div>
+                    </div>
+                    <p>{{ loadingProgress }}%</p>
+                </div>
+            </div>
+
+            <!-- 性能统计 -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">{{ stats.totalRoutes }}</div>
+                    <div class="stat-label">总路由数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ stats.lazyRoutes }}</div>
+                    <div class="stat-label">懒加载路由</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ stats.loadedComponents }}</div>
+                    <div class="stat-label">已加载组件</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ stats.averageLoadTime }}ms</div>
+                    <div class="stat-label">平均加载时间</div>
+                </div>
+            </div>
+
+            <!-- 路由视图 -->
+            <router-view v-slot="{ Component }">
+                <transition name="route" mode="out-in">
+                    <component :is="Component" />
+                </transition>
+            </router-view>
+        </main>
+    </div>
+
+    <script>
+        const { createApp, ref, reactive, computed, onMounted, nextTick } = Vue;
+        const { createRouter, createWebHashHistory, useRoute, useRouter } = VueRouter;
+
+        // 全局状态
+        const globalState = reactive({
+            loadingRoutes: new Set(),
+            loadTimes: {},
+            stats: {
+                totalRoutes: 6,
+                lazyRoutes: 5,
+                loadedComponents: 1,
+                averageLoadTime: 0
+            },
+            globalLoading: false,
+            loadingProgress: 0,
+            loadingMessage: ''
+        });
+
+        // 模拟组件懒加载
+        const createLazyComponent = (componentFactory, name, delay = 2000) => {
+            return () => {
+                globalState.globalLoading = true;
+                globalState.loadingProgress = 0;
+                globalState.loadingMessage = `正在加载 ${name} 组件...`;
+                globalState.loadingRoutes.add(name);
+                
+                const startTime = Date.now();
+                
+                // 模拟加载进度
+                const progressInterval = setInterval(() => {
+                    if (globalState.loadingProgress < 90) {
+                        globalState.loadingProgress += Math.random() * 20;
+                    }
+                }, 100);
+                
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        clearInterval(progressInterval);
+                        globalState.loadingProgress = 100;
+                        
+                        setTimeout(() => {
+                            const loadTime = Date.now() - startTime;
+                            globalState.loadTimes[name] = loadTime;
+                            globalState.stats.loadedComponents++;
+                            
+                            // 计算平均加载时间
+                            const times = Object.values(globalState.loadTimes);
+                            globalState.stats.averageLoadTime = Math.round(
+                                times.reduce((a, b) => a + b, 0) / times.length
+                            );
+                            
+                            globalState.loadingRoutes.delete(name);
+                            globalState.globalLoading = false;
+                            
+                            resolve(componentFactory());
+                        }, 300);
+                    }, delay);
+                });
+            };
+        };
+
+        // 首页组件（非懒加载）
+        const Home = {
+            template: `
+                <div class="card">
+                    <h2>🏠 首页</h2>
+                    <div class="alert alert-info">
+                        <strong>ℹ️ 欢迎使用Vue Router懒加载与高级特性练习系统！</strong>
+                    </div>
+                    
+                    <div class="grid">
+                        <div class="card">
+                            <h4>🚀 路由懒加载</h4>
+                            <p>通过动态导入实现按需加载，提升应用性能</p>
+                            <ul class="feature-list">
+                                <li>
+                                    <div class="feature-icon feature-enabled">✓</div>
+                                    <span>代码分割</span>
+                                </li>
+                                <li>
+                                    <div class="feature-icon feature-enabled">✓</div>
+                                    <span>按需加载</span>
+                                </li>
+                                <li>
+                                    <div class="feature-icon feature-enabled">✓</div>
+                                    <span>加载状态管理</span>
+                                </li>
+                                <li>
+                                    <div class="feature-icon feature-enabled">✓</div>
+                                    <span>错误处理</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="card">
+                            <h4>⚡ 性能优化</h4>
+                            <p>多种优化策略提升用户体验</p>
+                            <ul class="feature-list">
+                                <li>
+                                    <div class="feature-icon feature-enabled">✓</div>
+                                    <span>预加载策略</span>
+                                </li>
+                                <li>
+                                    <div class="feature-icon feature-enabled">✓</div>
+                                    <span>缓存机制</span>
+                                </li>
+                                <li>
+                                    <div class="feature-icon feature-enabled">✓</div>
+                                    <span>加载动画</span>
+                                </li>
+                                <li>
+                                    <div class="feature-icon feature-enabled">✓</div>
+                                    <span>性能监控</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="card">
+                            <h4>🎨 高级特性</h4>
+                            <p>Vue Router的高级功能演示</p>
+                            <ul class="feature-list">
+                                <li>
+                                    <div class="feature-icon feature-enabled">✓</div>
+                                    <span>路由过渡动画</span>
+                                </li>
+                                <li>
+                                    <div class="feature-icon feature-enabled">✓</div>
+                                    <span>滚动行为控制</span>
+                                </li>
+                                <li>
+                                    <div class="feature-icon feature-enabled">✓</div>
+                                    <span>路由元信息</span>
+                                </li>
+                                <li>
+                                    <div class="feature-icon feature-enabled">✓</div>
+                                    <span>导航故障处理</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h4>📋 懒加载实现示例</h4>
+                        <div class="code-block">
+// 基础懒加载
+const Dashboard = () => import('./Dashboard.vue')
+
+// 带错误处理的懒加载
+const Products = () => import(
+  /* webpackChunkName: "products" */
+  './Products.vue'
+).catch(err => {
+  console.error('Failed to load Products component:', err)
+  return import('./ErrorComponent.vue')
+})
+
+// 条件懒加载
+const Analytics = () => {
+  if (userHasPermission('analytics')) {
+    return import('./Analytics.vue')
+  } else {
+    return import('./Unauthorized.vue')
+  }
+}
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h4>🎯 练习目标</h4>
+                        <ul style="padding-left: 2rem;">
+                            <li>理解路由懒加载的原理和优势</li>
+                            <li>掌握动态导入的使用方法</li>
+                            <li>学会处理加载状态和错误</li>
+                            <li>了解代码分割和性能优化</li>
+                            <li>实践路由过渡动画</li>
+                            <li>掌握滚动行为控制</li>
+                        </ul>
+                    </div>
+                </div>
+            `
+        };
+
+        // 懒加载组件工厂函数
+        const createDashboardComponent = () => ({
+            template: `
+                <div class="card">
+                    <div class="breadcrumb">
+                        <router-link to="/">首页</router-link> / 仪表板
+                    </div>
+                    
+                    <h2>📊 仪表板</h2>
+                    <div class="alert alert-success">
+                        <strong>✅ 组件加载成功！</strong> 这是一个懒加载的仪表板组件。
+                    </div>
+                    
+                    <div class="grid">
+                        <div class="card">
+                            <h4>📈 销售数据</h4>
+                            <div class="stat-number" style="color: #28a745;">¥125,678</div>
+                            <p>本月销售额 (+15.3%)</p>
+                        </div>
+                        <div class="card">
+                            <h4>👥 用户统计</h4>
+                            <div class="stat-number" style="color: #007bff;">8,456</div>
+                            <p>活跃用户数 (+8.7%)</p>
+                        </div>
+                        <div class="card">
+                            <h4>📦 订单量</h4>
+                            <div class="stat-number" style="color: #ffc107;">2,341</div>
+                            <p>本月订单 (+12.1%)</p>
+                        </div>
+                        <div class="card">
+                            <h4>💰 利润率</h4>
+                            <div class="stat-number" style="color: #dc3545;">23.5%</div>
+                            <p>毛利润率 (+2.3%)</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h4>📊 图表区域</h4>
+                        <div style="height: 200px; background: linear-gradient(45deg, #f0f0f0, #e0e0e0); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #666;">
+                            📈 这里是图表展示区域（模拟）
+                        </div>
+                    </div>
+                </div>
+            `
+        });
+
+        const createProductsComponent = () => ({
+            template: `
+                <div class="card">
+                    <div class="breadcrumb">
+                        <router-link to="/">首页</router-link> / 产品管理
+                    </div>
+                    
+                    <h2>📦 产品管理</h2>
+                    <div class="alert alert-success">
+                        <strong>✅ 产品管理模块加载完成！</strong> 支持产品的增删改查操作。
+                    </div>
+                    
+                    <div style="margin-bottom: 2rem;">
+                        <button class="btn btn-primary">添加产品</button>
+                        <button class="btn btn-secondary">批量导入</button>
+                        <button class="btn btn-warning">导出数据</button>
+                    </div>
+                    
+                    <div class="card">
+                        <h4>📋 产品列表</h4>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #f8f9fa;">
+                                    <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #dee2e6;">产品名称</th>
+                                    <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #dee2e6;">分类</th>
+                                    <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #dee2e6;">价格</th>
+                                    <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #dee2e6;">库存</th>
+                                    <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #dee2e6;">状态</th>
+                                    <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #dee2e6;">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="product in products" :key="product.id" style="border-bottom: 1px solid #dee2e6;">
+                                    <td style="padding: 1rem;">{{ product.name }}</td>
+                                    <td style="padding: 1rem;">{{ product.category }}</td>
+                                    <td style="padding: 1rem;">¥{{ product.price }}</td>
+                                    <td style="padding: 1rem;">{{ product.stock }}</td>
+                                    <td style="padding: 1rem;">
+                                        <span :class="product.status === '上架' ? 'btn btn-success' : 'btn btn-secondary'" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;">
+                                            {{ product.status }}
+                                        </span>
+                                    </td>
+                                    <td style="padding: 1rem;">
+                                        <button class="btn btn-primary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; margin-right: 0.5rem;">编辑</button>
+                                        <button class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;">删除</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `,
+            setup() {
+                const products = ref([
+                    { id: 1, name: 'iPhone 15 Pro', category: '手机', price: 8999, stock: 50, status: '上架' },
+                    { id: 2, name: 'MacBook Pro', category: '电脑', price: 15999, stock: 25, status: '上架' },
+                    { id: 3, name: 'AirPods Pro', category: '耳机', price: 1999, stock: 100, status: '上架' },
+                    { id: 4, name: 'iPad Air', category: '平板', price: 4599, stock: 0, status: '缺货' },
+                    { id: 5, name: 'Apple Watch', category: '手表', price: 2999, stock: 75, status: '上架' }
+                ]);
+                
+                return { products };
+            }
+        });
+
+        const createAnalyticsComponent = () => ({
+            template: `
+                <div class="card">
+                    <div class="breadcrumb">
+                        <router-link to="/">首页</router-link> / 数据分析
+                    </div>
+                    
+                    <h2>📈 数据分析</h2>
+                    <div class="alert alert-success">
+                        <strong>✅ 数据分析模块加载完成！</strong> 提供详细的业务数据分析。
+                    </div>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number">{{ analytics.pageViews }}</div>
+                            <div class="stat-label">页面浏览量</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">{{ analytics.uniqueVisitors }}</div>
+                            <div class="stat-label">独立访客</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">{{ analytics.bounceRate }}%</div>
+                            <div class="stat-label">跳出率</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">{{ analytics.avgSessionTime }}s</div>
+                            <div class="stat-label">平均会话时长</div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid">
+                        <div class="card">
+                            <h4>🌍 地域分布</h4>
+                            <div v-for="region in analytics.regions" :key="region.name" style="margin-bottom: 1rem;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                    <span>{{ region.name }}</span>
+                                    <span>{{ region.percentage }}%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" :style="{ width: region.percentage + '%' }"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <h4>📱 设备类型</h4>
+                            <div v-for="device in analytics.devices" :key="device.name" style="margin-bottom: 1rem;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                    <span>{{ device.name }}</span>
+                                    <span>{{ device.percentage }}%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" :style="{ width: device.percentage + '%' }"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <h4>🔍 热门页面</h4>
+                            <div v-for="page in analytics.topPages" :key="page.path" style="padding: 0.75rem 0; border-bottom: 1px solid #e9ecef;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>{{ page.path }}</span>
+                                    <span style="color: #667eea; font-weight: bold;">{{ page.views }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+            setup() {
+                const analytics = ref({
+                    pageViews: 125678,
+                    uniqueVisitors: 45234,
+                    bounceRate: 32.5,
+                    avgSessionTime: 245,
+                    regions: [
+                        { name: '北京', percentage: 35 },
+                        { name: '上海', percentage: 28 },
+                        { name: '广州', percentage: 15 },
+                        { name: '深圳', percentage: 12 },
+                        { name: '其他', percentage: 10 }
+                    ],
+                    devices: [
+                        { name: '桌面端', percentage: 65 },
+                        { name: '移动端', percentage: 30 },
+                        { name: '平板', percentage: 5 }
+                    ],
+                    topPages: [
+                        { path: '/dashboard', views: 15678 },
+                        { path: '/products', views: 12345 },
+                        { path: '/analytics', views: 9876 },
+                        { path: '/settings', views: 7654 },
+                        { path: '/docs', views: 5432 }
+                    ]
+                });
+                
+                return { analytics };
+            }
+        });
+
+        const createSettingsComponent = () => ({
+            template: `
+                <div class="card">
+                    <div class="breadcrumb">
+                        <router-link to="/">首页</router-link> / 系统设置
+                    </div>
+                    
+                    <h2>⚙️ 系统设置</h2>
+                    <div class="alert alert-success">
+                        <strong>✅ 系统设置模块加载完成！</strong> 可以配置系统的各项参数。
+                    </div>
+                    
+                    <div class="grid">
+                        <div class="card">
+                            <h4>🎨 界面设置</h4>
+                            <div style="margin-bottom: 1rem;">
+                                <label style="display: block; margin-bottom: 0.5rem;">主题色彩</label>
+                                <select style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                                    <option>蓝色主题</option>
+                                    <option>绿色主题</option>
+                                    <option>紫色主题</option>
+                                    <option>橙色主题</option>
+                                </select>
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" checked>
+                                    <span>启用暗色模式</span>
+                                </label>
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox">
+                                    <span>紧凑布局</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <h4>🔔 通知设置</h4>
+                            <div style="margin-bottom: 1rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" checked>
+                                    <span>桌面通知</span>
+                                </label>
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" checked>
+                                    <span>邮件通知</span>
+                                </label>
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox">
+                                    <span>短信通知</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <h4>🔒 安全设置</h4>
+                            <div style="margin-bottom: 1rem;">
+                                <label style="display: block; margin-bottom: 0.5rem;">会话超时</label>
+                                <select style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                                    <option>30分钟</option>
+                                    <option>1小时</option>
+                                    <option>2小时</option>
+                                    <option>4小时</option>
+                                </select>
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" checked>
+                                    <span>启用两步验证</span>
+                                </label>
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox">
+                                    <span>记住登录状态</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <h4>⚡ 性能设置</h4>
+                            <div style="margin-bottom: 1rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" checked>
+                                    <span>启用缓存</span>
+                                </label>
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" checked>
+                                    <span>预加载资源</span>
+                                </label>
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox">
+                                    <span>压缩传输</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 2rem;">
+                        <button class="btn btn-primary">保存设置</button>
+                        <button class="btn btn-secondary">重置默认</button>
+                    </div>
+                </div>
+            `
+        });
+
+        const createDocsComponent = () => ({
+            template: `
+                <div class="card">
+                    <div class="breadcrumb">
+                        <router-link to="/">首页</router-link> / 文档中心
+                    </div>
+                    
+                    <h2>📚 文档中心</h2>
+                    <div class="alert alert-success">
+                        <strong>✅ 文档中心加载完成！</strong> 这里包含了详细的使用文档和API参考。
+                    </div>
+                    
+                    <div class="grid">
+                        <div class="card">
+                            <h4>🚀 快速开始</h4>
+                            <ul style="padding-left: 1.5rem;">
+                                <li><a href="#" style="color: #667eea;">安装指南</a></li>
+                                <li><a href="#" style="color: #667eea;">基础配置</a></li>
+                                <li><a href="#" style="color: #667eea;">第一个项目</a></li>
+                                <li><a href="#" style="color: #667eea;">常见问题</a></li>
+                            </ul>
+                        </div>
+                        
+                        <div class="card">
+                            <h4>📖 API 文档</h4>
+                            <ul style="padding-left: 1.5rem;">
+                                <li><a href="#" style="color: #667eea;">路由配置</a></li>
+                                <li><a href="#" style="color: #667eea;">导航守卫</a></li>
+                                <li><a href="#" style="color: #667eea;">懒加载</a></li>
+                                <li><a href="#" style="color: #667eea;">高级特性</a></li>
+                            </ul>
+                        </div>
+                        
+                        <div class="card">
+                            <h4>🎯 最佳实践</h4>
+                            <ul style="padding-left: 1.5rem;">
+                                <li><a href="#" style="color: #667eea;">性能优化</a></li>
+                                <li><a href="#" style="color: #667eea;">SEO 优化</a></li>
+                                <li><a href="#" style="color: #667eea;">错误处理</a></li>
+                                <li><a href="#" style="color: #667eea;">测试策略</a></li>
+                            </ul>
+                        </div>
+                        
+                        <div class="card">
+                            <h4>🔧 工具集成</h4>
+                            <ul style="padding-left: 1.5rem;">
+                                <li><a href="#" style="color: #667eea;">Webpack 配置</a></li>
+                                <li><a href="#" style="color: #667eea;">TypeScript 支持</a></li>
+                                <li><a href="#" style="color: #667eea;">ESLint 规则</a></li>
+                                <li><a href="#" style="color: #667eea;">部署指南</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h4>💡 懒加载最佳实践</h4>
+                        <div class="code-block">
+// 1. 基础懒加载
+const Home = () => import('./views/Home.vue')
+
+// 2. 命名 chunk
+const About = () => import(
+  /* webpackChunkName: "about" */ 
+  './views/About.vue'
+)
+
+// 3. 预加载 (prefetch)
+const Contact = () => import(
+  /* webpackChunkName: "contact" */
+  /* webpackPrefetch: true */
+  './views/Contact.vue'
+)
+
+// 4. 预载入 (preload)
+const Dashboard = () => import(
+  /* webpackChunkName: "dashboard" */
+  /* webpackPreload: true */
+  './views/Dashboard.vue'
+)
+
+// 5. 条件加载
+const AdminPanel = () => {
+  if (user.isAdmin) {
+    return import('./views/AdminPanel.vue')
+  } else {
+    return Promise.reject(new Error('Unauthorized'))
+  }
+}
+                        </div>
+                    </div>
+                </div>
+            `
+        });
+
+        // 路由配置
+        const routes = [
+            {
+                path: '/',
+                component: Home,
+                meta: { title: '首页' }
+            },
+            {
+                path: '/dashboard',
+                component: createLazyComponent(createDashboardComponent, '仪表板', 1500),
+                meta: { title: '仪表板' }
+            },
+            {
+                path: '/products',
+                component: createLazyComponent(createProductsComponent, '产品管理', 2000),
+                meta: { title: '产品管理' }
+            },
+            {
+                path: '/analytics',
+                component: createLazyComponent(createAnalyticsComponent, '数据分析', 2500),
+                meta: { title: '数据分析' }
+            },
+            {
+                path: '/settings',
+                component: createLazyComponent(createSettingsComponent, '系统设置', 1800),
+                meta: { title: '系统设置' }
+            },
+            {
+                path: '/docs',
+                component: createLazyComponent(createDocsComponent, '文档中心', 1200),
+                meta: { title: '文档中心' }
+            }
+        ];
+
+        // 创建路由器
+        const router = createRouter({
+            history: createWebHashHistory(),
+            routes,
+            scrollBehavior(to, from, savedPosition) {
+                // 滚动行为控制
+                if (savedPosition) {
+                    return savedPosition;
+                } else if (to.hash) {
+                    return { el: to.hash };
+                } else {
+                    return { top: 0 };
+                }
+            }
+        });
+
+        // 路由守卫
+        router.beforeEach((to, from, next) => {
+            // 设置页面标题
+            if (to.meta.title) {
+                document.title = `${to.meta.title} - 懒加载系统`;
+            }
+            next();
+        });
+
+        // 创建应用
+        const app = createApp({
+            setup() {
+                const loadTime = ref(0);
+                
+                const isLoading = (path) => {
+                    return Array.from(globalState.loadingRoutes).some(route => 
+                        path.includes(route.toLowerCase())
+                    );
+                };
+                
+                const getPerformanceClass = (time) => {
+                    if (time < 1000) return 'performance-good';
+                    if (time < 2000) return 'performance-warning';
+                    return 'performance-error';
+                };
+                
+                const getPerformanceText = (time) => {
+                    if (time < 1000) return '优秀';
+                    if (time < 2000) return '良好';
+                    return '需优化';
+                };
+                
+                // 监听路由变化，计算加载时间
+                const router = useRouter();
+                router.beforeEach((to, from, next) => {
+                    loadTime.value = Date.now();
+                    next();
+                });
+                
+                router.afterEach(() => {
+                    nextTick(() => {
+                        loadTime.value = Date.now() - loadTime.value;
+                    });
+                });
+                
+                return {
+                    loadTime,
+                    globalLoading: computed(() => globalState.globalLoading),
+                    loadingProgress: computed(() => globalState.loadingProgress),
+                    loadingMessage: computed(() => globalState.loadingMessage),
+                    stats: globalState.stats,
+                    isLoading,
+                    getPerformanceClass,
+                    getPerformanceText
+                };
+            }
+        });
+
+        app.use(router);
+        app.mount('#app');
+    </script>
+</body>
+</html>

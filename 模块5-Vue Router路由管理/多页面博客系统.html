@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多页面博客系统 - Vue Router 实践项目</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/vue-router@4/dist/vue-router.global.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+
+        /* 导航栏样式 */
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.router-link-active {
+            background-color: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+
+        /* 主要内容区域 */
+        .main-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            min-height: calc(100vh - 200px);
+        }
+
+        /* 面包屑导航 */
+        .breadcrumb {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .breadcrumb a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        /* 卡片样式 */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        /* 文章列表样式 */
+        .article-list {
+            display: grid;
+            gap: 2rem;
+        }
+
+        .article-item {
+            display: flex;
+            gap: 1.5rem;
+            align-items: flex-start;
+        }
+
+        .article-image {
+            width: 200px;
+            height: 120px;
+            background: linear-gradient(45deg, #f0f0f0, #e0e0e0);
+            border-radius: 8px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+        }
+
+        .article-content h3 {
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-size: 1.3rem;
+        }
+
+        .article-content h3 a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .article-content h3 a:hover {
+            color: #667eea;
+        }
+
+        .article-meta {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .article-excerpt {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        /* 分类样式 */
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .category-card {
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .category-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+        }
+
+        /* 用户中心样式 */
+        .user-profile {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+        }
+
+        .user-avatar {
+            width: 150px;
+            height: 150px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: white;
+        }
+
+        .user-info h2 {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        /* 表单样式 */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e1e1e1;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        /* 按钮样式 */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #333;
+            border: 2px solid #e1e1e1;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+
+        /* 页面过渡动画 */
+        .fade-enter-active,
+        .fade-leave-active {
+            transition: opacity 0.3s ease;
+        }
+
+        .fade-enter-from,
+        .fade-leave-to {
+            opacity: 0;
+        }
+
+        .slide-enter-active,
+        .slide-leave-active {
+            transition: all 0.3s ease;
+        }
+
+        .slide-enter-from {
+            transform: translateX(30px);
+            opacity: 0;
+        }
+
+        .slide-leave-to {
+            transform: translateX(-30px);
+            opacity: 0;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .nav-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-links {
+                gap: 1rem;
+            }
+
+            .article-item {
+                flex-direction: column;
+            }
+
+            .article-image {
+                width: 100%;
+                height: 200px;
+            }
+
+            .user-profile {
+                grid-template-columns: 1fr;
+            }
+
+            .category-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 加载状态 */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 错误页面样式 */
+        .error-page {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .error-code {
+            font-size: 6rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .error-message {
+            font-size: 1.5rem;
+            color: #666;
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- 导航栏 -->
+        <nav class="navbar">
+            <div class="nav-container">
+                <router-link to="/" class="logo">📝 我的博客</router-link>
+                <ul class="nav-links">
+                    <li><router-link to="/">首页</router-link></li>
+                    <li><router-link to="/articles">文章</router-link></li>
+                    <li><router-link to="/categories">分类</router-link></li>
+                    <li><router-link to="/about">关于</router-link></li>
+                    <li v-if="!isLoggedIn"><router-link to="/login">登录</router-link></li>
+                    <li v-if="isLoggedIn"><router-link to="/profile">个人中心</router-link></li>
+                    <li v-if="isLoggedIn && isAdmin"><router-link to="/admin">管理后台</router-link></li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- 面包屑导航 -->
+        <div class="main-container" v-if="showBreadcrumb">
+            <div class="breadcrumb">
+                <span v-for="(crumb, index) in breadcrumbs" :key="index">
+                    <router-link v-if="crumb.path" :to="crumb.path">{{ crumb.name }}</router-link>
+                    <span v-else>{{ crumb.name }}</span>
+                    <span v-if="index < breadcrumbs.length - 1"> / </span>
+                </span>
+            </div>
+        </div>
+
+        <!-- 主要内容区域 -->
+        <div class="main-container">
+            <router-view v-slot="{ Component }">
+                <transition name="fade" mode="out-in">
+                    <component :is="Component" />
+                </transition>
+            </router-view>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted, watch } = Vue;
+        const { createRouter, createWebHashHistory, useRouter, useRoute } = VueRouter;
+
+        // 模拟数据
+        const mockArticles = [
+            {
+                id: 1,
+                title: 'Vue 3 Composition API 深度解析',
+                excerpt: 'Vue 3 引入的 Composition API 为我们提供了更灵活的组件逻辑组织方式...',
+                content: '这是一篇关于 Vue 3 Composition API 的详细文章内容...',
+                author: '张三',
+                date: '2024-01-15',
+                category: 'Vue.js',
+                views: 1250,
+                likes: 89
+            },
+            {
+                id: 2,
+                title: 'JavaScript 异步编程最佳实践',
+                excerpt: '异步编程是现代 JavaScript 开发中的重要概念，本文将深入探讨...',
+                content: '这是一篇关于 JavaScript 异步编程的详细文章内容...',
+                author: '李四',
+                date: '2024-01-12',
+                category: 'JavaScript',
+                views: 980,
+                likes: 67
+            },
+            {
+                id: 3,
+                title: 'CSS Grid 布局完全指南',
+                excerpt: 'CSS Grid 是现代网页布局的强大工具，让我们一起学习如何使用...',
+                content: '这是一篇关于 CSS Grid 布局的详细文章内容...',
+                author: '王五',
+                date: '2024-01-10',
+                category: 'CSS',
+                views: 756,
+                likes: 45
+            }
+        ];
+
+        const mockCategories = [
+            { id: 1, name: 'Vue.js', count: 15, icon: '🔥' },
+            { id: 2, name: 'JavaScript', count: 23, icon: '⚡' },
+            { id: 3, name: 'CSS', count: 12, icon: '🎨' },
+            { id: 4, name: 'Node.js', count: 8, icon: '🚀' },
+            { id: 5, name: '工具分享', count: 6, icon: '🛠️' },
+            { id: 6, name: '生活随笔', count: 4, icon: '📝' }
+        ];
+
+        // 组件定义
+        const Home = {
+            template: `
+                <div>
+                    <div class="card">
+                        <h1>欢迎来到我的博客 🎉</h1>
+                        <p>这里分享前端开发技术、编程心得和生活感悟</p>
+                    </div>
+                    
+                    <div class="card">
+                        <h2>最新文章</h2>
+                        <div class="article-list">
+                            <div v-for="article in latestArticles" :key="article.id" class="article-item">
+                                <div class="article-image">📄</div>
+                                <div class="article-content">
+                                    <h3>
+                                        <router-link :to="'/articles/' + article.id">
+                                            {{ article.title }}
+                                        </router-link>
+                                    </h3>
+                                    <div class="article-meta">
+                                        {{ article.author }} · {{ article.date }} · {{ article.views }} 次阅读
+                                    </div>
+                                    <p class="article-excerpt">{{ article.excerpt }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="text-align: center; margin-top: 2rem;">
+                            <router-link to="/articles" class="btn btn-primary">查看更多文章</router-link>
+                        </div>
+                    </div>
+                </div>
+            `,
+            setup() {
+                const latestArticles = ref(mockArticles.slice(0, 3));
+                return { latestArticles };
+            }
+        };
+
+        const ArticleList = {
+            template: `
+                <div>
+                    <div class="card">
+                        <h1>文章列表</h1>
+                        <div class="article-list">
+                            <div v-for="article in articles" :key="article.id" class="article-item">
+                                <div class="article-image">📄</div>
+                                <div class="article-content">
+                                    <h3>
+                                        <router-link :to="'/articles/' + article.id">
+                                            {{ article.title }}
+                                        </router-link>
+                                    </h3>
+                                    <div class="article-meta">
+                                        {{ article.author }} · {{ article.date }} · {{ article.category }} · {{ article.views }} 次阅读
+                                    </div>
+                                    <p class="article-excerpt">{{ article.excerpt }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+            setup() {
+                const articles = ref(mockArticles);
+                return { articles };
+            }
+        };
+
+        const ArticleDetail = {
+            template: `
+                <div v-if="loading" class="loading">
+                    加载中...
+                </div>
+                <div v-else-if="article" class="card">
+                    <h1>{{ article.title }}</h1>
+                    <div class="article-meta" style="margin: 1rem 0; padding: 1rem 0; border-bottom: 1px solid #eee;">
+                        <span>作者：{{ article.author }}</span> |
+                        <span>发布时间：{{ article.date }}</span> |
+                        <span>分类：{{ article.category }}</span> |
+                        <span>阅读：{{ article.views }}</span> |
+                        <span>点赞：{{ article.likes }}</span>
+                    </div>
+                    <div class="article-content" style="line-height: 1.8; font-size: 1.1rem;">
+                        <p>{{ article.content }}</p>
+                        <p style="margin-top: 2rem;">这里是文章的详细内容，在实际项目中会从服务器获取完整的文章内容。</p>
+                        <p>文章内容支持 Markdown 格式，可以包含代码块、图片、链接等丰富的内容。</p>
+                    </div>
+                    <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #eee;">
+                        <router-link to="/articles" class="btn btn-secondary">← 返回文章列表</router-link>
+                    </div>
+                </div>
+                <div v-else class="error-page">
+                    <div class="error-code">404</div>
+                    <div class="error-message">文章不存在</div>
+                    <router-link to="/articles" class="btn btn-primary">返回文章列表</router-link>
+                </div>
+            `,
+            setup() {
+                const route = useRoute();
+                const article = ref(null);
+                const loading = ref(true);
+
+                const loadArticle = () => {
+                    loading.value = true;
+                    // 模拟异步加载
+                    setTimeout(() => {
+                        const id = parseInt(route.params.id);
+                        article.value = mockArticles.find(a => a.id === id);
+                        loading.value = false;
+                    }, 500);
+                };
+
+                onMounted(loadArticle);
+                watch(() => route.params.id, loadArticle);
+
+                return { article, loading };
+            }
+        };
+
+        const Categories = {
+            template: `
+                <div>
+                    <div class="card">
+                        <h1>文章分类</h1>
+                        <div class="category-grid">
+                            <div v-for="category in categories" :key="category.id" 
+                                 class="category-card card" 
+                                 @click="goToCategory(category.name)">
+                                <div class="category-icon">{{ category.icon }}</div>
+                                <h3>{{ category.name }}</h3>
+                                <p>{{ category.count }} 篇文章</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+            setup() {
+                const router = useRouter();
+                const categories = ref(mockCategories);
+
+                const goToCategory = (categoryName) => {
+                    router.push(`/categories/${categoryName}`);
+                };
+
+                return { categories, goToCategory };
+            }
+        };
+
+        const CategoryDetail = {
+            template: `
+                <div class="card">
+                    <h1>{{ categoryName }} 分类文章</h1>
+                    <div class="article-list">
+                        <div v-for="article in filteredArticles" :key="article.id" class="article-item">
+                            <div class="article-image">📄</div>
+                            <div class="article-content">
+                                <h3>
+                                    <router-link :to="'/articles/' + article.id">
+                                        {{ article.title }}
+                                    </router-link>
+                                </h3>
+                                <div class="article-meta">
+                                    {{ article.author }} · {{ article.date }} · {{ article.views }} 次阅读
+                                </div>
+                                <p class="article-excerpt">{{ article.excerpt }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-if="filteredArticles.length === 0" style="text-align: center; padding: 2rem; color: #666;">
+                        该分类下暂无文章
+                    </div>
+                    <div style="margin-top: 2rem;">
+                        <router-link to="/categories" class="btn btn-secondary">← 返回分类列表</router-link>
+                    </div>
+                </div>
+            `,
+            setup() {
+                const route = useRoute();
+                const categoryName = computed(() => route.params.category);
+                const filteredArticles = computed(() => {
+                    return mockArticles.filter(article => 
+                        article.category === categoryName.value
+                    );
+                });
+
+                return { categoryName, filteredArticles };
+            }
+        };
+
+        const About = {
+            template: `
+                <div class="card">
+                    <h1>关于我</h1>
+                    <div class="user-profile">
+                        <div>
+                            <div class="user-avatar">👨‍💻</div>
+                            <div class="user-info">
+                                <h2>前端开发者</h2>
+                                <p>热爱技术，喜欢分享</p>
+                            </div>
+                        </div>
+                        <div>
+                            <h3>个人简介</h3>
+                            <p style="line-height: 1.8; margin: 1rem 0;">我是一名前端开发者，专注于 Vue.js、React 和现代 JavaScript 技术栈。喜欢探索新技术，分享开发经验，希望通过这个博客能够帮助到更多的开发者。</p>
+                            
+                            <h3>技能栈</h3>
+                            <ul style="margin: 1rem 0; padding-left: 2rem;">
+                                <li>Vue.js / React</li>
+                                <li>JavaScript / TypeScript</li>
+                                <li>Node.js / Express</li>
+                                <li>HTML5 / CSS3</li>
+                                <li>Webpack / Vite</li>
+                            </ul>
+                            
+                            <h3>联系方式</h3>
+                            <p style="margin: 1rem 0;">📧 Email: developer@example.com</p>
+                            <p>🐙 GitHub: github.com/developer</p>
+                        </div>
+                    </div>
+                </div>
+            `
+        };
+
+        const Login = {
+            template: `
+                <div class="card" style="max-width: 400px; margin: 0 auto;">
+                    <h1 style="text-align: center; margin-bottom: 2rem;">用户登录</h1>
+                    <form @submit.prevent="handleLogin">
+                        <div class="form-group">
+                            <label>用户名</label>
+                            <input type="text" v-model="username" required>
+                        </div>
+                        <div class="form-group">
+                            <label>密码</label>
+                            <input type="password" v-model="password" required>
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary" style="width: 100%;">登录</button>
+                        </div>
+                    </form>
+                    <p style="text-align: center; margin-top: 1rem; color: #666;">
+                        提示：用户名 admin，密码 123456 可以登录管理员账户
+                    </p>
+                </div>
+            `,
+            setup() {
+                const router = useRouter();
+                const username = ref('');
+                const password = ref('');
+
+                const handleLogin = () => {
+                    // 模拟登录逻辑
+                    if (username.value && password.value) {
+                        const isAdmin = username.value === 'admin' && password.value === '123456';
+                        localStorage.setItem('isLoggedIn', 'true');
+                        localStorage.setItem('isAdmin', isAdmin.toString());
+                        localStorage.setItem('username', username.value);
+                        
+                        // 触发全局状态更新
+                        window.dispatchEvent(new Event('auth-change'));
+                        
+                        router.push('/profile');
+                    }
+                };
+
+                return { username, password, handleLogin };
+            }
+        };
+
+        const Profile = {
+            template: `
+                <div class="card">
+                    <h1>个人中心</h1>
+                    <div class="user-profile">
+                        <div>
+                            <div class="user-avatar">👤</div>
+                            <div class="user-info">
+                                <h2>{{ username }}</h2>
+                                <p>{{ isAdmin ? '管理员' : '普通用户' }}</p>
+                            </div>
+                        </div>
+                        <div>
+                            <h3>账户信息</h3>
+                            <div class="form-group">
+                                <label>用户名</label>
+                                <input type="text" :value="username" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>角色</label>
+                                <input type="text" :value="isAdmin ? '管理员' : '普通用户'" readonly>
+                            </div>
+                            <div class="form-group">
+                                <button @click="logout" class="btn btn-secondary">退出登录</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+            setup() {
+                const router = useRouter();
+                const username = ref(localStorage.getItem('username') || '');
+                const isAdmin = ref(localStorage.getItem('isAdmin') === 'true');
+
+                const logout = () => {
+                    localStorage.removeItem('isLoggedIn');
+                    localStorage.removeItem('isAdmin');
+                    localStorage.removeItem('username');
+                    window.dispatchEvent(new Event('auth-change'));
+                    router.push('/');
+                };
+
+                return { username, isAdmin, logout };
+            }
+        };
+
+        const Admin = {
+            template: `
+                <div>
+                    <div class="card">
+                        <h1>管理后台</h1>
+                        <p>欢迎来到管理后台，这里可以管理文章、分类和用户。</p>
+                    </div>
+                    
+                    <div class="card">
+                        <h2>快速统计</h2>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                            <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; text-align: center;">
+                                <h3 style="color: #667eea;">{{ articles.length }}</h3>
+                                <p>文章总数</p>
+                            </div>
+                            <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; text-align: center;">
+                                <h3 style="color: #667eea;">{{ categories.length }}</h3>
+                                <p>分类数量</p>
+                            </div>
+                            <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; text-align: center;">
+                                <h3 style="color: #667eea;">{{ totalViews }}</h3>
+                                <p>总阅读量</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h2>管理功能</h2>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                            <router-link to="/admin/articles" class="btn btn-primary">文章管理</router-link>
+                            <router-link to="/admin/categories" class="btn btn-primary">分类管理</router-link>
+                            <router-link to="/admin/users" class="btn btn-primary">用户管理</router-link>
+                        </div>
+                    </div>
+                </div>
+            `,
+            setup() {
+                const articles = ref(mockArticles);
+                const categories = ref(mockCategories);
+                const totalViews = computed(() => {
+                    return articles.value.reduce((sum, article) => sum + article.views, 0);
+                });
+
+                return { articles, categories, totalViews };
+            }
+        };
+
+        const AdminArticles = {
+            template: `
+                <div class="card">
+                    <h1>文章管理</h1>
+                    <div style="margin-bottom: 2rem;">
+                        <button class="btn btn-primary">新增文章</button>
+                    </div>
+                    <div class="article-list">
+                        <div v-for="article in articles" :key="article.id" class="article-item">
+                            <div class="article-image">📄</div>
+                            <div class="article-content">
+                                <h3>{{ article.title }}</h3>
+                                <div class="article-meta">
+                                    {{ article.author }} · {{ article.date }} · {{ article.views }} 次阅读
+                                </div>
+                                <div style="margin-top: 1rem;">
+                                    <button class="btn btn-secondary" style="margin-right: 1rem;">编辑</button>
+                                    <button class="btn btn-secondary">删除</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 2rem;">
+                        <router-link to="/admin" class="btn btn-secondary">← 返回管理后台</router-link>
+                    </div>
+                </div>
+            `,
+            setup() {
+                const articles = ref(mockArticles);
+                return { articles };
+            }
+        };
+
+        const NotFound = {
+            template: `
+                <div class="error-page">
+                    <div class="error-code">404</div>
+                    <div class="error-message">页面不存在</div>
+                    <p style="color: #666; margin-bottom: 2rem;">抱歉，您访问的页面不存在或已被删除。</p>
+                    <router-link to="/" class="btn btn-primary">返回首页</router-link>
+                </div>
+            `
+        };
+
+        // 路由守卫函数
+        const requireAuth = (to, from, next) => {
+            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            if (isLoggedIn) {
+                next();
+            } else {
+                next('/login');
+            }
+        };
+
+        const requireAdmin = (to, from, next) => {
+            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            const isAdmin = localStorage.getItem('isAdmin') === 'true';
+            if (isLoggedIn && isAdmin) {
+                next();
+            } else {
+                next('/login');
+            }
+        };
+
+        // 路由配置
+        const routes = [
+            { path: '/', component: Home, meta: { title: '首页' } },
+            { path: '/articles', component: ArticleList, meta: { title: '文章列表' } },
+            { path: '/articles/:id', component: ArticleDetail, meta: { title: '文章详情' } },
+            { path: '/categories', component: Categories, meta: { title: '分类列表' } },
+            { path: '/categories/:category', component: CategoryDetail, meta: { title: '分类详情' } },
+            { path: '/about', component: About, meta: { title: '关于我' } },
+            { path: '/login', component: Login, meta: { title: '用户登录' } },
+            { path: '/profile', component: Profile, beforeEnter: requireAuth, meta: { title: '个人中心' } },
+            { 
+                path: '/admin', 
+                component: Admin, 
+                beforeEnter: requireAdmin, 
+                meta: { title: '管理后台' },
+                children: [
+                    { path: 'articles', component: AdminArticles, meta: { title: '文章管理' } }
+                ]
+            },
+            { path: '/:pathMatch(.*)*', component: NotFound, meta: { title: '页面不存在' } }
+        ];
+
+        const router = createRouter({
+            history: createWebHashHistory(),
+            routes,
+            scrollBehavior(to, from, savedPosition) {
+                if (savedPosition) {
+                    return savedPosition;
+                } else {
+                    return { top: 0 };
+                }
+            }
+        });
+
+        // 全局路由守卫
+        router.beforeEach((to, from, next) => {
+            // 设置页面标题
+            document.title = to.meta.title ? `${to.meta.title} - 我的博客` : '我的博客';
+            next();
+        });
+
+        // 创建应用
+        const app = createApp({
+            setup() {
+                const isLoggedIn = ref(localStorage.getItem('isLoggedIn') === 'true');
+                const isAdmin = ref(localStorage.getItem('isAdmin') === 'true');
+                const route = useRoute();
+
+                // 监听认证状态变化
+                const updateAuthState = () => {
+                    isLoggedIn.value = localStorage.getItem('isLoggedIn') === 'true';
+                    isAdmin.value = localStorage.getItem('isAdmin') === 'true';
+                };
+
+                onMounted(() => {
+                    window.addEventListener('auth-change', updateAuthState);
+                });
+
+                // 面包屑导航
+                const breadcrumbs = computed(() => {
+                    const crumbs = [{ name: '首页', path: '/' }];
+                    
+                    if (route.path.startsWith('/articles/')) {
+                        crumbs.push({ name: '文章列表', path: '/articles' });
+                        crumbs.push({ name: '文章详情' });
+                    } else if (route.path === '/articles') {
+                        crumbs.push({ name: '文章列表' });
+                    } else if (route.path.startsWith('/categories/')) {
+                        crumbs.push({ name: '分类列表', path: '/categories' });
+                        crumbs.push({ name: '分类详情' });
+                    } else if (route.path === '/categories') {
+                        crumbs.push({ name: '分类列表' });
+                    } else if (route.path === '/about') {
+                        crumbs.push({ name: '关于我' });
+                    } else if (route.path === '/profile') {
+                        crumbs.push({ name: '个人中心' });
+                    } else if (route.path.startsWith('/admin')) {
+                        crumbs.push({ name: '管理后台', path: '/admin' });
+                        if (route.path === '/admin/articles') {
+                            crumbs.push({ name: '文章管理' });
+                        }
+                    }
+                    
+                    return crumbs;
+                });
+
+                const showBreadcrumb = computed(() => {
+                    return route.path !== '/' && route.path !== '/login';
+                });
+
+                return {
+                    isLoggedIn,
+                    isAdmin,
+                    breadcrumbs,
+                    showBreadcrumb
+                };
+            }
+        });
+
+        app.use(router);
+        app.mount('#app');
+    </script>
+</body>
+</html>

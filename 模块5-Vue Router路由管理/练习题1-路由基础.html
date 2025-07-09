@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>练习题1：路由基础 - Vue Router 学习</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/vue-router@4/dist/vue-router.global.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f7fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            margin-bottom: 2rem;
+            border-radius: 12px;
+        }
+
+        .exercise-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .exercise-title {
+            color: #667eea;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e1e8ff;
+        }
+
+        .nav-demo {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-links a {
+            padding: 0.5rem 1rem;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        .nav-links a.router-link-active {
+            background: #4c51bf;
+            box-shadow: 0 4px 12px rgba(76, 81, 191, 0.4);
+        }
+
+        .content-area {
+            background: #fff;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 2rem;
+            margin: 1rem 0;
+            min-height: 200px;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            margin: 0.5rem;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .info-box {
+            background: #e6fffa;
+            border-left: 4px solid #38b2ac;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .warning-box {
+            background: #fffbeb;
+            border-left: 4px solid #f6ad55;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 1rem 0;
+            overflow-x: auto;
+        }
+
+        .route-info {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .route-info h4 {
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .route-info p {
+            color: #4a5568;
+            margin: 0.25rem 0;
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .demo-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .demo-card h4 {
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .mode-switcher {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .mode-switcher button {
+            padding: 0.5rem 1rem;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .mode-switcher button.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .fade-enter-active, .fade-leave-active {
+            transition: opacity 0.3s ease;
+        }
+
+        .fade-enter-from, .fade-leave-to {
+            opacity: 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .nav-links {
+                flex-direction: column;
+            }
+            
+            .demo-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <div class="header">
+                <h1>🚀 练习题1：Vue Router 路由基础</h1>
+                <p>学习路由配置、导航链接、编程式导航和路由模式</p>
+            </div>
+
+            <!-- 练习1：基础路由配置 -->
+            <div class="exercise-section">
+                <h2 class="exercise-title">练习1：基础路由配置与导航</h2>
+                
+                <div class="info-box">
+                    <strong>学习目标：</strong>
+                    <ul>
+                        <li>理解路由配置的基本结构</li>
+                        <li>掌握 router-link 的使用方法</li>
+                        <li>学会使用 router-view 显示组件</li>
+                        <li>了解路由的激活状态</li>
+                    </ul>
+                </div>
+
+                <div class="nav-demo">
+                    <h4>导航菜单：</h4>
+                    <div class="nav-links">
+                        <router-link to="/">首页</router-link>
+                        <router-link to="/about">关于我们</router-link>
+                        <router-link to="/services">服务介绍</router-link>
+                        <router-link to="/contact">联系我们</router-link>
+                        <router-link to="/blog">博客</router-link>
+                    </div>
+                </div>
+
+                <div class="content-area">
+                    <router-view v-slot="{ Component }">
+                        <transition name="fade" mode="out-in">
+                            <component :is="Component" />
+                        </transition>
+                    </router-view>
+                </div>
+
+                <div class="route-info">
+                    <h4>当前路由信息：</h4>
+                    <p><strong>路径：</strong> {{ $route.path }}</p>
+                    <p><strong>名称：</strong> {{ $route.name || '未设置' }}</p>
+                    <p><strong>完整路径：</strong> {{ $route.fullPath }}</p>
+                </div>
+            </div>
+
+            <!-- 练习2：编程式导航 -->
+            <div class="exercise-section">
+                <h2 class="exercise-title">练习2：编程式导航</h2>
+                
+                <div class="info-box">
+                    <strong>学习目标：</strong>
+                    <ul>
+                        <li>掌握 $router.push() 方法</li>
+                        <li>了解 $router.replace() 和 $router.go() 的区别</li>
+                        <li>学会在组件中进行路由跳转</li>
+                        <li>理解路由历史记录的管理</li>
+                    </ul>
+                </div>
+
+                <div class="demo-grid">
+                    <div class="demo-card">
+                        <h4>基础跳转方法</h4>
+                        <button class="btn btn-primary" @click="goToPage('/about')">跳转到关于页面</button>
+                        <button class="btn btn-primary" @click="goToPage('/services')">跳转到服务页面</button>
+                        <button class="btn btn-secondary" @click="goBack">返回上一页</button>
+                        <button class="btn btn-secondary" @click="goForward">前进一页</button>
+                    </div>
+
+                    <div class="demo-card">
+                        <h4>替换当前路由</h4>
+                        <button class="btn btn-primary" @click="replacePage('/contact')">替换为联系页面</button>
+                        <p style="font-size: 0.9rem; color: #666; margin-top: 0.5rem;">
+                            使用 replace 不会在历史记录中留下记录
+                        </p>
+                    </div>
+
+                    <div class="demo-card">
+                        <h4>历史记录操作</h4>
+                        <button class="btn btn-secondary" @click="goSteps(-2)">后退2步</button>
+                        <button class="btn btn-secondary" @click="goSteps(1)">前进1步</button>
+                        <p style="font-size: 0.9rem; color: #666; margin-top: 0.5rem;">
+                            使用 go() 方法可以在历史记录中跳转指定步数
+                        </p>
+                    </div>
+
+                    <div class="demo-card">
+                        <h4>导航历史</h4>
+                        <div style="max-height: 150px; overflow-y: auto; background: #f8f9fa; padding: 1rem; border-radius: 6px;">
+                            <div v-for="(item, index) in navigationHistory" :key="index" 
+                                 style="padding: 0.25rem 0; border-bottom: 1px solid #e2e8f0;">
+                                <small>{{ item.time }}</small> - {{ item.path }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 练习3：路由模式对比 -->
+            <div class="exercise-section">
+                <h2 class="exercise-title">练习3：路由模式对比</h2>
+                
+                <div class="info-box">
+                    <strong>学习目标：</strong>
+                    <ul>
+                        <li>理解 Hash 模式和 History 模式的区别</li>
+                        <li>了解两种模式的优缺点</li>
+                        <li>学会根据项目需求选择合适的模式</li>
+                    </ul>
+                </div>
+
+                <div class="warning-box">
+                    <strong>注意：</strong> 在本演示中我们使用 Hash 模式，因为它不需要服务器配置。在实际项目中，History 模式需要服务器支持。
+                </div>
+
+                <div class="demo-grid">
+                    <div class="demo-card">
+                        <h4>Hash 模式特点</h4>
+                        <ul style="margin: 1rem 0; padding-left: 1.5rem;">
+                            <li>URL 中包含 # 符号</li>
+                            <li>不需要服务器配置</li>
+                            <li>兼容性好</li>
+                            <li>SEO 不够友好</li>
+                        </ul>
+                        <div class="code-block">
+                            <div>// Hash 模式配置</div>
+                            <div>const router = createRouter({</div>
+                            <div>  history: createWebHashHistory(),</div>
+                            <div>  routes: [...]</div>
+                            <div>})</div>
+                        </div>
+                    </div>
+
+                    <div class="demo-card">
+                        <h4>History 模式特点</h4>
+                        <ul style="margin: 1rem 0; padding-left: 1.5rem;">
+                            <li>URL 更加美观</li>
+                            <li>SEO 友好</li>
+                            <li>需要服务器配置</li>
+                            <li>刷新可能出现 404</li>
+                        </ul>
+                        <div class="code-block">
+                            <div>// History 模式配置</div>
+                            <div>const router = createRouter({</div>
+                            <div>  history: createWebHistory(),</div>
+                            <div>  routes: [...]</div>
+                            <div>})</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="route-info">
+                    <h4>当前使用的路由模式：Hash 模式</h4>
+                    <p>观察浏览器地址栏中的 # 符号，这就是 Hash 模式的特征。</p>
+                </div>
+            </div>
+
+            <!-- 练习4：路由链接的高级用法 -->
+            <div class="exercise-section">
+                <h2 class="exercise-title">练习4：router-link 高级用法</h2>
+                
+                <div class="info-box">
+                    <strong>学习目标：</strong>
+                    <ul>
+                        <li>掌握 router-link 的各种属性</li>
+                        <li>学会自定义激活状态的样式</li>
+                        <li>了解 exact 精确匹配的作用</li>
+                        <li>掌握 replace 属性的使用</li>
+                    </ul>
+                </div>
+
+                <div class="demo-grid">
+                    <div class="demo-card">
+                        <h4>基础链接</h4>
+                        <router-link to="/" class="btn btn-primary">普通链接</router-link>
+                        <router-link to="/about" class="btn btn-primary">关于页面</router-link>
+                    </div>
+
+                    <div class="demo-card">
+                        <h4>替换模式链接</h4>
+                        <router-link to="/services" replace class="btn btn-secondary">
+                            替换模式跳转
+                        </router-link>
+                        <p style="font-size: 0.9rem; color: #666; margin-top: 0.5rem;">
+                            不会在历史记录中留下记录
+                        </p>
+                    </div>
+
+                    <div class="demo-card">
+                        <h4>自定义渲染</h4>
+                        <router-link to="/contact" custom v-slot="{ navigate, isActive }">
+                            <button 
+                                @click="navigate" 
+                                :class="['btn', isActive ? 'btn-primary' : 'btn-secondary']">
+                                {{ isActive ? '当前页面' : '联系我们' }}
+                            </button>
+                        </router-link>
+                    </div>
+
+                    <div class="demo-card">
+                        <h4>激活状态演示</h4>
+                        <div style="margin: 1rem 0;">
+                            <router-link 
+                                to="/" 
+                                active-class="btn-primary" 
+                                class="btn btn-secondary"
+                                style="margin-right: 0.5rem;">
+                                首页
+                            </router-link>
+                            <router-link 
+                                to="/blog" 
+                                active-class="btn-primary" 
+                                class="btn btn-secondary">
+                                博客
+                            </router-link>
+                        </div>
+                        <p style="font-size: 0.9rem; color: #666;">
+                            当前激活的链接会应用 active-class 样式
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 总结 -->
+            <div class="exercise-section">
+                <h2 class="exercise-title">📚 学习总结</h2>
+                
+                <div class="demo-grid">
+                    <div class="demo-card">
+                        <h4>✅ 已掌握的知识点</h4>
+                        <ul style="padding-left: 1.5rem;">
+                            <li>路由的基本配置方法</li>
+                            <li>router-link 和 router-view 的使用</li>
+                            <li>编程式导航的各种方法</li>
+                            <li>Hash 模式和 History 模式的区别</li>
+                            <li>路由激活状态的处理</li>
+                        </ul>
+                    </div>
+
+                    <div class="demo-card">
+                        <h4>🎯 实践要点</h4>
+                        <ul style="padding-left: 1.5rem;">
+                            <li>合理选择声明式和编程式导航</li>
+                            <li>根据项目需求选择路由模式</li>
+                            <li>注意路由激活状态的样式设计</li>
+                            <li>善用路由信息进行调试</li>
+                        </ul>
+                    </div>
+
+                    <div class="demo-card">
+                        <h4>🚀 下一步学习</h4>
+                        <ul style="padding-left: 1.5rem;">
+                            <li>动态路由匹配</li>
+                            <li>路径参数和查询参数</li>
+                            <li>嵌套路由结构</li>
+                            <li>路由守卫机制</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted } = Vue;
+        const { createRouter, createWebHashHistory, useRouter, useRoute } = VueRouter;
+
+        // 组件定义
+        const Home = {
+            template: `
+                <div>
+                    <h2>🏠 欢迎来到首页</h2>
+                    <p>这是网站的主页，展示最重要的信息和导航入口。</p>
+                    <div style="margin-top: 1rem; padding: 1rem; background: #f0f8ff; border-radius: 6px;">
+                        <h4>首页特色功能：</h4>
+                        <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                            <li>最新动态展示</li>
+                            <li>热门内容推荐</li>
+                            <li>快速导航菜单</li>
+                        </ul>
+                    </div>
+                </div>
+            `
+        };
+
+        const About = {
+            template: `
+                <div>
+                    <h2>ℹ️ 关于我们</h2>
+                    <p>了解我们的团队、使命和愿景。</p>
+                    <div style="margin-top: 1rem; padding: 1rem; background: #f0fff0; border-radius: 6px;">
+                        <h4>公司简介：</h4>
+                        <p style="margin: 0.5rem 0;">我们是一家专注于前端技术的创新公司，致力于为用户提供最佳的数字体验。</p>
+                        <h4>核心价值：</h4>
+                        <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                            <li>用户至上</li>
+                            <li>技术创新</li>
+                            <li>团队协作</li>
+                        </ul>
+                    </div>
+                </div>
+            `
+        };
+
+        const Services = {
+            template: `
+                <div>
+                    <h2>🛠️ 服务介绍</h2>
+                    <p>我们提供全方位的前端开发和咨询服务。</p>
+                    <div style="margin-top: 1rem;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                            <div style="padding: 1rem; background: #fff5f5; border-radius: 6px;">
+                                <h4>🎨 UI/UX 设计</h4>
+                                <p>专业的界面设计和用户体验优化</p>
+                            </div>
+                            <div style="padding: 1rem; background: #f0f8ff; border-radius: 6px;">
+                                <h4>💻 前端开发</h4>
+                                <p>现代化的前端应用开发</p>
+                            </div>
+                            <div style="padding: 1rem; background: #f0fff0; border-radius: 6px;">
+                                <h4>🚀 性能优化</h4>
+                                <p>网站性能分析和优化方案</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `
+        };
+
+        const Contact = {
+            template: `
+                <div>
+                    <h2>📞 联系我们</h2>
+                    <p>随时欢迎您与我们取得联系。</p>
+                    <div style="margin-top: 1rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                        <div style="padding: 1rem; background: #fffbf0; border-radius: 6px;">
+                            <h4>📧 邮箱联系</h4>
+                            <p>contact@example.com</p>
+                            <p>support@example.com</p>
+                        </div>
+                        <div style="padding: 1rem; background: #f0f8ff; border-radius: 6px;">
+                            <h4>📱 电话联系</h4>
+                            <p>客服热线：400-123-4567</p>
+                            <p>技术支持：400-765-4321</p>
+                        </div>
+                        <div style="padding: 1rem; background: #f0fff0; border-radius: 6px;">
+                            <h4>🏢 办公地址</h4>
+                            <p>北京市朝阳区科技园</p>
+                            <p>创新大厦 15 层</p>
+                        </div>
+                    </div>
+                </div>
+            `
+        };
+
+        const Blog = {
+            template: `
+                <div>
+                    <h2>📝 技术博客</h2>
+                    <p>分享最新的技术文章和开发经验。</p>
+                    <div style="margin-top: 1rem;">
+                        <div v-for="post in blogPosts" :key="post.id" 
+                             style="padding: 1rem; margin: 1rem 0; background: #fafafa; border-radius: 6px; border-left: 4px solid #667eea;">
+                            <h4 style="color: #667eea; margin-bottom: 0.5rem;">{{ post.title }}</h4>
+                            <p style="color: #666; font-size: 0.9rem; margin-bottom: 0.5rem;">{{ post.date }} | {{ post.author }}</p>
+                            <p>{{ post.excerpt }}</p>
+                        </div>
+                    </div>
+                </div>
+            `,
+            setup() {
+                const blogPosts = ref([
+                    {
+                        id: 1,
+                        title: 'Vue 3 Composition API 实战指南',
+                        date: '2024-01-15',
+                        author: '张三',
+                        excerpt: '深入探讨 Vue 3 Composition API 的使用技巧和最佳实践...'
+                    },
+                    {
+                        id: 2,
+                        title: 'Vue Router 4 新特性解析',
+                        date: '2024-01-12',
+                        author: '李四',
+                        excerpt: '详细介绍 Vue Router 4 的新功能和改进点...'
+                    },
+                    {
+                        id: 3,
+                        title: '前端性能优化实战',
+                        date: '2024-01-10',
+                        author: '王五',
+                        excerpt: '从多个维度分析前端性能优化的方法和工具...'
+                    }
+                ]);
+                return { blogPosts };
+            }
+        };
+
+        // 路由配置
+        const routes = [
+            { path: '/', name: 'Home', component: Home },
+            { path: '/about', name: 'About', component: About },
+            { path: '/services', name: 'Services', component: Services },
+            { path: '/contact', name: 'Contact', component: Contact },
+            { path: '/blog', name: 'Blog', component: Blog }
+        ];
+
+        const router = createRouter({
+            history: createWebHashHistory(),
+            routes
+        });
+
+        // 创建应用
+        const app = createApp({
+            setup() {
+                const router = useRouter();
+                const route = useRoute();
+                const navigationHistory = ref([]);
+
+                // 记录导航历史
+                const addToHistory = (path) => {
+                    navigationHistory.value.unshift({
+                        path,
+                        time: new Date().toLocaleTimeString()
+                    });
+                    // 只保留最近10条记录
+                    if (navigationHistory.value.length > 10) {
+                        navigationHistory.value = navigationHistory.value.slice(0, 10);
+                    }
+                };
+
+                // 编程式导航方法
+                const goToPage = (path) => {
+                    router.push(path);
+                    addToHistory(path);
+                };
+
+                const replacePage = (path) => {
+                    router.replace(path);
+                    addToHistory(path + ' (替换)');
+                };
+
+                const goBack = () => {
+                    router.go(-1);
+                    addToHistory('后退一页');
+                };
+
+                const goForward = () => {
+                    router.go(1);
+                    addToHistory('前进一页');
+                };
+
+                const goSteps = (steps) => {
+                    router.go(steps);
+                    addToHistory(`${steps > 0 ? '前进' : '后退'}${Math.abs(steps)}步`);
+                };
+
+                // 监听路由变化
+                onMounted(() => {
+                    addToHistory(route.path);
+                });
+
+                return {
+                    navigationHistory,
+                    goToPage,
+                    replacePage,
+                    goBack,
+                    goForward,
+                    goSteps
+                };
+            }
+        });
+
+        app.use(router);
+        app.mount('#app');
+    </script>
+</body>
+</html>

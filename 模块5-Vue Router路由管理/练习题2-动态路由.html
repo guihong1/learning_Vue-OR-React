@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>练习题2：动态路由 - Vue Router 学习</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/vue-router@4/dist/vue-router.global.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f7fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            margin-bottom: 2rem;
+            border-radius: 12px;
+        }
+
+        .exercise-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .exercise-title {
+            color: #667eea;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e1e8ff;
+        }
+
+        .nav-demo {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .nav-links a {
+            padding: 0.5rem 1rem;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        .nav-links a.router-link-active {
+            background: #4c51bf;
+            box-shadow: 0 4px 12px rgba(76, 81, 191, 0.4);
+        }
+
+        .content-area {
+            background: #fff;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 2rem;
+            margin: 1rem 0;
+            min-height: 300px;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            margin: 0.5rem;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+        }
+
+        .info-box {
+            background: #e6fffa;
+            border-left: 4px solid #38b2ac;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .warning-box {
+            background: #fffbeb;
+            border-left: 4px solid #f6ad55;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 1rem 0;
+            overflow-x: auto;
+            font-size: 0.9rem;
+        }
+
+        .route-info {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .route-info h4 {
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .route-info p {
+            color: #4a5568;
+            margin: 0.25rem 0;
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .demo-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .demo-card h4 {
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .user-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .user-avatar {
+            width: 100px;
+            height: 100px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .product-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .product-image {
+            height: 150px;
+            background: linear-gradient(45deg, #f0f0f0, #e0e0e0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+
+        .product-info {
+            padding: 1rem;
+        }
+
+        .product-price {
+            color: #e53e3e;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+
+        .breadcrumb {
+            background: #f8f9fa;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .fade-enter-active, .fade-leave-active {
+            transition: opacity 0.3s ease;
+        }
+
+        .fade-enter-from, .fade-leave-to {
+            opacity: 0;
+        }
+
+        .error-page {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .error-code {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #e53e3e;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .nav-links {
+                flex-direction: column;
+            }
+            
+            .demo-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .product-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <div class="header">
+                <h1>🎯 练习题2：动态路由匹配</h1>
+                <p>学习路径参数、查询参数、参数变化响应和404处理</p>
+            </div>
+
+            <!-- 导航菜单 -->
+            <div class="nav-demo">
+                <h4>导航菜单：</h4>
+                <div class="nav-links">
+                    <router-link to="/">首页</router-link>
+                    <router-link to="/users">用户列表</router-link>
+                    <router-link to="/products">产品列表</router-link>
+                    <router-link to="/search">搜索页面</router-link>
+                </div>
+                
+                <h4 style="margin-top: 1rem;">快速跳转示例：</h4>
+                <div class="nav-links">
+                    <router-link to="/users/1">用户1</router-link>
+                    <router-link to="/users/2">用户2</router-link>
+                    <router-link to="/products/101">产品101</router-link>
+                    <router-link to="/products/102">产品102</router-link>
+                    <router-link to="/search?q=vue&category=frontend">搜索示例</router-link>
+                </div>
+            </div>
+
+            <!-- 路由信息显示 -->
+            <div class="route-info">
+                <h4>当前路由信息：</h4>
+                <p><strong>路径：</strong> {{ $route.path }}</p>
+                <p><strong>路径参数：</strong> {{ JSON.stringify($route.params) }}</p>
+                <p><strong>查询参数：</strong> {{ JSON.stringify($route.query) }}</p>
+                <p><strong>完整路径：</strong> {{ $route.fullPath }}</p>
+            </div>
+
+            <!-- 主要内容区域 -->
+            <div class="content-area">
+                <router-view v-slot="{ Component }">
+                    <transition name="fade" mode="out-in">
+                        <component :is="Component" :key="$route.fullPath" />
+                    </transition>
+                </router-view>
+            </div>
+
+            <!-- 练习1：动态路由参数 -->
+            <div class="exercise-section">
+                <h2 class="exercise-title">练习1：路径参数的使用</h2>
+                
+                <div class="info-box">
+                    <strong>学习目标：</strong>
+                    <ul>
+                        <li>理解动态路由的概念和语法</li>
+                        <li>掌握路径参数的获取方法</li>
+                        <li>学会响应参数变化</li>
+                        <li>了解参数验证和类型转换</li>
+                    </ul>
+                </div>
+
+                <div class="demo-grid">
+                    <div class="demo-card">
+                        <h4>用户ID跳转</h4>
+                        <div class="form-group">
+                            <label>输入用户ID：</label>
+                            <input type="number" v-model="userId" placeholder="请输入用户ID">
+                        </div>
+                        <button class="btn btn-primary" @click="goToUser">查看用户</button>
+                        <div class="code-block" style="margin-top: 1rem;">
+                            <div>// 路由配置</div>
+                            <div>{ path: '/users/:id', component: UserDetail }</div>
+                        </div>
+                    </div>
+
+                    <div class="demo-card">
+                        <h4>产品分类跳转</h4>
+                        <div class="form-group">
+                            <label>选择产品分类：</label>
+                            <select v-model="selectedCategory">
+                                <option value="electronics">电子产品</option>
+                                <option value="clothing">服装</option>
+                                <option value="books">图书</option>
+                                <option value="sports">运动用品</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>输入产品ID：</label>
+                            <input type="number" v-model="productId" placeholder="请输入产品ID">
+                        </div>
+                        <button class="btn btn-primary" @click="goToProduct">查看产品</button>
+                        <div class="code-block" style="margin-top: 1rem;">
+                            <div>// 多参数路由</div>
+                            <div>{ path: '/products/:category/:id', ... }</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 练习2：查询参数 -->
+            <div class="exercise-section">
+                <h2 class="exercise-title">练习2：查询参数的处理</h2>
+                
+                <div class="info-box">
+                    <strong>学习目标：</strong>
+                    <ul>
+                        <li>掌握查询参数的设置和获取</li>
+                        <li>学会处理复杂的查询条件</li>
+                        <li>了解查询参数的编码和解码</li>
+                        <li>实现搜索功能的路由设计</li>
+                    </ul>
+                </div>
+
+                <div class="demo-card">
+                    <h4>搜索功能演示</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                        <div class="form-group">
+                            <label>搜索关键词：</label>
+                            <input type="text" v-model="searchQuery" placeholder="输入搜索关键词">
+                        </div>
+                        <div class="form-group">
+                            <label>分类筛选：</label>
+                            <select v-model="searchCategory">
+                                <option value="">全部分类</option>
+                                <option value="frontend">前端开发</option>
+                                <option value="backend">后端开发</option>
+                                <option value="mobile">移动开发</option>
+                                <option value="ai">人工智能</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>排序方式：</label>
+                            <select v-model="searchSort">
+                                <option value="relevance">相关性</option>
+                                <option value="date">时间</option>
+                                <option value="popularity">热度</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>每页数量：</label>
+                            <select v-model="searchLimit">
+                                <option value="10">10条</option>
+                                <option value="20">20条</option>
+                                <option value="50">50条</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn btn-success" @click="performSearch">执行搜索</button>
+                    <div class="code-block" style="margin-top: 1rem;">
+                        <div>// 查询参数示例</div>
+                        <div>/search?q=vue&category=frontend&sort=date&limit=20</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 练习3：参数变化响应 -->
+            <div class="exercise-section">
+                <h2 class="exercise-title">练习3：参数变化的响应处理</h2>
+                
+                <div class="info-box">
+                    <strong>学习目标：</strong>
+                    <ul>
+                        <li>理解参数变化时组件的行为</li>
+                        <li>掌握 watch 监听参数变化</li>
+                        <li>学会使用 key 强制重新渲染</li>
+                        <li>了解参数变化的性能优化</li>
+                    </ul>
+                </div>
+
+                <div class="warning-box">
+                    <strong>重要提示：</strong> 当路由参数变化时，相同的组件实例会被复用。这意味着组件的生命周期钩子不会被重新调用。需要通过 watch 或使用 key 来响应参数变化。
+                </div>
+
+                <div class="demo-card">
+                    <h4>快速切换用户测试</h4>
+                    <p>点击下面的按钮快速切换不同用户，观察组件如何响应参数变化：</p>
+                    <div style="margin: 1rem 0;">
+                        <button v-for="id in [1,2,3,4,5]" :key="id" 
+                                class="btn btn-secondary" 
+                                @click="$router.push('/users/' + id)">
+                            用户 {{ id }}
+                        </button>
+                    </div>
+                    <div class="code-block">
+                        <div>// 监听参数变化</div>
+                        <div>watch(() => route.params.id, (newId) => {</div>
+                        <div>  // 参数变化时的处理逻辑</div>
+                        <div>  loadUserData(newId)</div>
+                        <div>})</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 练习4：404错误处理 -->
+            <div class="exercise-section">
+                <h2 class="exercise-title">练习4：404错误页面处理</h2>
+                
+                <div class="info-box">
+                    <strong>学习目标：</strong>
+                    <ul>
+                        <li>学会配置通配符路由</li>
+                        <li>掌握404页面的设计</li>
+                        <li>了解路由优先级和匹配规则</li>
+                        <li>实现友好的错误提示</li>
+                    </ul>
+                </div>
+
+                <div class="demo-card">
+                    <h4>测试404页面</h4>
+                    <p>点击下面的链接测试不存在的页面：</p>
+                    <div style="margin: 1rem 0;">
+                        <router-link to="/nonexistent" class="btn btn-secondary">不存在的页面</router-link>
+                        <router-link to="/users/999" class="btn btn-secondary">不存在的用户</router-link>
+                        <router-link to="/products/invalid/123" class="btn btn-secondary">无效的产品路径</router-link>
+                    </div>
+                    <div class="code-block">
+                        <div>// 404路由配置</div>
+                        <div>{ path: '/:pathMatch(.*)*', component: NotFound }</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 总结 -->
+            <div class="exercise-section">
+                <h2 class="exercise-title">📚 学习总结</h2>
+                
+                <div class="demo-grid">
+                    <div class="demo-card">
+                        <h4>✅ 路径参数</h4>
+                        <ul style="padding-left: 1.5rem;">
+                            <li>使用 :param 定义动态路由</li>
+                            <li>通过 $route.params 获取参数</li>
+                            <li>支持多个参数和可选参数</li>
+                            <li>参数变化时需要特殊处理</li>
+                        </ul>
+                    </div>
+
+                    <div class="demo-card">
+                        <h4>✅ 查询参数</h4>
+                        <ul style="padding-left: 1.5rem;">
+                            <li>通过 $route.query 获取查询参数</li>
+                            <li>适用于搜索、筛选等场景</li>
+                            <li>参数会自动编码和解码</li>
+                            <li>可以与路径参数组合使用</li>
+                        </ul>
+                    </div>
+
+                    <div class="demo-card">
+                        <h4>✅ 最佳实践</h4>
+                        <ul style="padding-left: 1.5rem;">
+                            <li>合理设计路由结构</li>
+                            <li>处理参数变化的响应</li>
+                            <li>提供友好的404页面</li>
+                            <li>注意参数的验证和类型转换</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, watch, onMounted } = Vue;
+        const { createRouter, createWebHashHistory, useRouter, useRoute } = VueRouter;
+
+        // 模拟数据
+        const mockUsers = [
+            { id: 1, name: '张三', email: 'zhangsan@example.com', role: '管理员', avatar: '👨‍💼' },
+            { id: 2, name: '李四', email: 'lisi@example.com', role: '开发者', avatar: '👨‍💻' },
+            { id: 3, name: '王五', email: 'wangwu@example.com', role: '设计师', avatar: '🎨' },
+            { id: 4, name: '赵六', email: 'zhaoliu@example.com', role: '测试员', avatar: '🔍' },
+            { id: 5, name: '钱七', email: 'qianqi@example.com', role: '产品经理', avatar: '📊' }
+        ];
+
+        const mockProducts = {
+            electronics: [
+                { id: 101, name: '智能手机', price: 2999, icon: '📱' },
+                { id: 102, name: '笔记本电脑', price: 5999, icon: '💻' },
+                { id: 103, name: '智能手表', price: 1299, icon: '⌚' }
+            ],
+            clothing: [
+                { id: 201, name: '休闲T恤', price: 99, icon: '👕' },
+                { id: 202, name: '牛仔裤', price: 299, icon: '👖' },
+                { id: 203, name: '运动鞋', price: 599, icon: '👟' }
+            ],
+            books: [
+                { id: 301, name: 'Vue.js实战', price: 79, icon: '📚' },
+                { id: 302, name: 'JavaScript高级程序设计', price: 99, icon: '📖' },
+                { id: 303, name: '算法导论', price: 129, icon: '📘' }
+            ],
+            sports: [
+                { id: 401, name: '篮球', price: 199, icon: '🏀' },
+                { id: 402, name: '网球拍', price: 399, icon: '🎾' },
+                { id: 403, name: '跑步机', price: 2999, icon: '🏃‍♂️' }
+            ]
+        };
+
+        // 组件定义
+        const Home = {
+            template: `
+                <div>
+                    <h2>🏠 动态路由练习首页</h2>
+                    <p>欢迎来到动态路由练习页面！这里你可以学习和实践各种动态路由的用法。</p>
+                    
+                    <div style="margin-top: 2rem;">
+                        <h3>🎯 练习内容</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                            <div style="padding: 1rem; background: #f0f8ff; border-radius: 8px;">
+                                <h4>👥 用户管理</h4>
+                                <p>学习用户详情页面的动态路由实现</p>
+                                <router-link to="/users" class="btn btn-primary" style="margin-top: 0.5rem;">查看用户列表</router-link>
+                            </div>
+                            <div style="padding: 1rem; background: #f0fff0; border-radius: 8px;">
+                                <h4>🛍️ 产品展示</h4>
+                                <p>实践多参数动态路由和分类管理</p>
+                                <router-link to="/products" class="btn btn-primary" style="margin-top: 0.5rem;">查看产品列表</router-link>
+                            </div>
+                            <div style="padding: 1rem; background: #fff5f5; border-radius: 8px;">
+                                <h4>🔍 搜索功能</h4>
+                                <p>掌握查询参数的使用和处理</p>
+                                <router-link to="/search" class="btn btn-primary" style="margin-top: 0.5rem;">体验搜索</router-link>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `
+        };
+
+        const UserList = {
+            template: `
+                <div>
+                    <div class="breadcrumb">
+                        <router-link to="/">首页</router-link> / 用户列表
+                    </div>
+                    
+                    <h2>👥 用户列表</h2>
+                    <p>点击用户卡片查看详细信息</p>
+                    
+                    <div class="product-grid">
+                        <div v-for="user in users" :key="user.id" 
+                             class="product-card" 
+                             @click="$router.push('/users/' + user.id)"
+                             style="cursor: pointer;">
+                            <div class="product-image">{{ user.avatar }}</div>
+                            <div class="product-info">
+                                <h4>{{ user.name }}</h4>
+                                <p>{{ user.role }}</p>
+                                <p style="color: #666; font-size: 0.9rem;">{{ user.email }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+            setup() {
+                return { users: mockUsers };
+            }
+        };
+
+        const UserDetail = {
+            template: `
+                <div>
+                    <div class="breadcrumb">
+                        <router-link to="/">首页</router-link> / 
+                        <router-link to="/users">用户列表</router-link> / 
+                        用户详情
+                    </div>
+                    
+                    <div v-if="loading" style="text-align: center; padding: 2rem;">
+                        <p>加载中...</p>
+                    </div>
+                    
+                    <div v-else-if="user" class="user-card">
+                        <div class="user-avatar">{{ user.avatar }}</div>
+                        <h2>{{ user.name }}</h2>
+                        <p style="opacity: 0.9; margin: 0.5rem 0;">{{ user.role }}</p>
+                        <p style="opacity: 0.8;">{{ user.email }}</p>
+                        
+                        <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.2);">
+                            <p><strong>用户ID:</strong> {{ user.id }}</p>
+                            <p><strong>访问时间:</strong> {{ visitTime }}</p>
+                            <p><strong>参数变化次数:</strong> {{ paramChangeCount }}</p>
+                        </div>
+                    </div>
+                    
+                    <div v-else class="error-page">
+                        <div class="error-code">404</div>
+                        <h3>用户不存在</h3>
+                        <p>ID为 {{ $route.params.id }} 的用户不存在</p>
+                        <router-link to="/users" class="btn btn-primary">返回用户列表</router-link>
+                    </div>
+                    
+                    <div style="margin-top: 2rem; text-align: center;">
+                        <router-link to="/users" class="btn btn-secondary">← 返回用户列表</router-link>
+                    </div>
+                </div>
+            `,
+            setup() {
+                const route = useRoute();
+                const user = ref(null);
+                const loading = ref(false);
+                const visitTime = ref('');
+                const paramChangeCount = ref(0);
+
+                const loadUser = async () => {
+                    loading.value = true;
+                    paramChangeCount.value++;
+                    visitTime.value = new Date().toLocaleString();
+                    
+                    // 模拟异步加载
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    const userId = parseInt(route.params.id);
+                    user.value = mockUsers.find(u => u.id === userId) || null;
+                    loading.value = false;
+                };
+
+                // 监听参数变化
+                watch(() => route.params.id, loadUser, { immediate: true });
+
+                return {
+                    user,
+                    loading,
+                    visitTime,
+                    paramChangeCount
+                };
+            }
+        };
+
+        const ProductList = {
+            template: `
+                <div>
+                    <div class="breadcrumb">
+                        <router-link to="/">首页</router-link> / 产品列表
+                    </div>
+                    
+                    <h2>🛍️ 产品分类</h2>
+                    <p>选择分类查看产品</p>
+                    
+                    <div class="product-grid">
+                        <div v-for="(products, category) in productCategories" :key="category" 
+                             class="product-card" 
+                             @click="$router.push('/products/' + category)"
+                             style="cursor: pointer;">
+                            <div class="product-image">📦</div>
+                            <div class="product-info">
+                                <h4>{{ getCategoryName(category) }}</h4>
+                                <p>{{ products.length }} 个产品</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+            setup() {
+                const productCategories = mockProducts;
+                
+                const getCategoryName = (category) => {
+                    const names = {
+                        electronics: '电子产品',
+                        clothing: '服装',
+                        books: '图书',
+                        sports: '运动用品'
+                    };
+                    return names[category] || category;
+                };
+
+                return { productCategories, getCategoryName };
+            }
+        };
+
+        const ProductCategory = {
+            template: `
+                <div>
+                    <div class="breadcrumb">
+                        <router-link to="/">首页</router-link> / 
+                        <router-link to="/products">产品列表</router-link> / 
+                        {{ categoryName }}
+                    </div>
+                    
+                    <h2>{{ categoryName }}</h2>
+                    <p>点击产品查看详细信息</p>
+                    
+                    <div v-if="products.length" class="product-grid">
+                        <div v-for="product in products" :key="product.id" 
+                             class="product-card" 
+                             @click="$router.push('/products/' + $route.params.category + '/' + product.id)"
+                             style="cursor: pointer;">
+                            <div class="product-image">{{ product.icon }}</div>
+                            <div class="product-info">
+                                <h4>{{ product.name }}</h4>
+                                <div class="product-price">¥{{ product.price }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div v-else class="error-page">
+                        <div class="error-code">404</div>
+                        <h3>分类不存在</h3>
+                        <p>分类 "{{ $route.params.category }}" 不存在</p>
+                        <router-link to="/products" class="btn btn-primary">返回产品列表</router-link>
+                    </div>
+                </div>
+            `,
+            setup() {
+                const route = useRoute();
+                
+                const products = computed(() => {
+                    return mockProducts[route.params.category] || [];
+                });
+                
+                const categoryName = computed(() => {
+                    const names = {
+                        electronics: '电子产品',
+                        clothing: '服装',
+                        books: '图书',
+                        sports: '运动用品'
+                    };
+                    return names[route.params.category] || route.params.category;
+                });
+
+                return { products, categoryName };
+            }
+        };
+
+        const ProductDetail = {
+            template: `
+                <div>
+                    <div class="breadcrumb">
+                        <router-link to="/">首页</router-link> / 
+                        <router-link to="/products">产品列表</router-link> / 
+                        <router-link :to="'/products/' + $route.params.category">{{ categoryName }}</router-link> / 
+                        产品详情
+                    </div>
+                    
+                    <div v-if="product" style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; align-items: start;">
+                        <div style="text-align: center; padding: 2rem; background: #f8f9fa; border-radius: 12px;">
+                            <div style="font-size: 6rem; margin-bottom: 1rem;">{{ product.icon }}</div>
+                            <h2>{{ product.name }}</h2>
+                            <div class="product-price" style="font-size: 2rem; margin: 1rem 0;">¥{{ product.price }}</div>
+                        </div>
+                        
+                        <div style="padding: 2rem; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
+                            <h3>产品信息</h3>
+                            <div style="margin: 1rem 0;">
+                                <p><strong>产品ID:</strong> {{ product.id }}</p>
+                                <p><strong>产品名称:</strong> {{ product.name }}</p>
+                                <p><strong>所属分类:</strong> {{ categoryName }}</p>
+                                <p><strong>价格:</strong> ¥{{ product.price }}</p>
+                                <p><strong>查看时间:</strong> {{ viewTime }}</p>
+                            </div>
+                            
+                            <div style="margin-top: 2rem;">
+                                <button class="btn btn-success" style="margin-right: 1rem;">立即购买</button>
+                                <button class="btn btn-secondary">加入购物车</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div v-else class="error-page">
+                        <div class="error-code">404</div>
+                        <h3>产品不存在</h3>
+                        <p>在分类 "{{ categoryName }}" 中找不到ID为 {{ $route.params.id }} 的产品</p>
+                        <router-link :to="'/products/' + $route.params.category" class="btn btn-primary">返回分类</router-link>
+                    </div>
+                </div>
+            `,
+            setup() {
+                const route = useRoute();
+                const viewTime = ref('');
+                
+                const product = computed(() => {
+                    const categoryProducts = mockProducts[route.params.category] || [];
+                    const productId = parseInt(route.params.id);
+                    return categoryProducts.find(p => p.id === productId) || null;
+                });
+                
+                const categoryName = computed(() => {
+                    const names = {
+                        electronics: '电子产品',
+                        clothing: '服装',
+                        books: '图书',
+                        sports: '运动用品'
+                    };
+                    return names[route.params.category] || route.params.category;
+                });
+
+                onMounted(() => {
+                    viewTime.value = new Date().toLocaleString();
+                });
+
+                return { product, categoryName, viewTime };
+            }
+        };
+
+        const Search = {
+            template: `
+                <div>
+                    <div class="breadcrumb">
+                        <router-link to="/">首页</router-link> / 搜索
+                    </div>
+                    
+                    <h2>🔍 搜索结果</h2>
+                    
+                    <div v-if="hasQuery" style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+                        <h4>搜索条件：</h4>
+                        <p v-if="query"><strong>关键词:</strong> {{ query }}</p>
+                        <p v-if="category"><strong>分类:</strong> {{ getCategoryName(category) }}</p>
+                        <p v-if="sort"><strong>排序:</strong> {{ getSortName(sort) }}</p>
+                        <p v-if="limit"><strong>每页:</strong> {{ limit }} 条</p>
+                    </div>
+                    
+                    <div v-if="!hasQuery" style="text-align: center; padding: 4rem; color: #666;">
+                        <h3>🔍 开始搜索</h3>
+                        <p>请使用上方的搜索表单进行搜索，或者点击下面的示例链接：</p>
+                        <div style="margin-top: 2rem;">
+                            <router-link to="/search?q=vue" class="btn btn-secondary" style="margin: 0.5rem;">搜索 Vue</router-link>
+                            <router-link to="/search?q=javascript&category=frontend" class="btn btn-secondary" style="margin: 0.5rem;">前端 JavaScript</router-link>
+                            <router-link to="/search?category=ai&sort=popularity" class="btn btn-secondary" style="margin: 0.5rem;">热门 AI</router-link>
+                        </div>
+                    </div>
+                    
+                    <div v-else>
+                        <div style="margin: 2rem 0;">
+                            <p style="color: #666;">找到 {{ mockResults.length }} 个结果</p>
+                        </div>
+                        
+                        <div class="product-grid">
+                            <div v-for="result in mockResults" :key="result.id" class="product-card">
+                                <div class="product-image">{{ result.icon }}</div>
+                                <div class="product-info">
+                                    <h4>{{ result.title }}</h4>
+                                    <p style="color: #666; font-size: 0.9rem;">{{ result.description }}</p>
+                                    <div style="margin-top: 0.5rem;">
+                                        <span style="background: #e2e8f0; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem;">{{ result.category }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+            setup() {
+                const route = useRoute();
+                
+                const query = computed(() => route.query.q || '');
+                const category = computed(() => route.query.category || '');
+                const sort = computed(() => route.query.sort || '');
+                const limit = computed(() => route.query.limit || '');
+                
+                const hasQuery = computed(() => {
+                    return query.value || category.value || sort.value || limit.value;
+                });
+                
+                const mockResults = computed(() => {
+                    if (!hasQuery.value) return [];
+                    
+                    return [
+                        { id: 1, title: 'Vue.js 3.0 完全指南', description: '深入学习 Vue 3 的新特性和最佳实践', category: '前端开发', icon: '📚' },
+                        { id: 2, title: 'JavaScript 高级编程', description: '掌握 JavaScript 的高级概念和技巧', category: '前端开发', icon: '💻' },
+                        { id: 3, title: 'React vs Vue 对比', description: '详细对比两个流行前端框架的优缺点', category: '前端开发', icon: '⚖️' },
+                        { id: 4, title: 'Node.js 后端开发', description: '使用 Node.js 构建高性能后端应用', category: '后端开发', icon: '🚀' },
+                        { id: 5, title: '移动端开发实战', description: '跨平台移动应用开发技术分享', category: '移动开发', icon: '📱' },
+                        { id: 6, title: '人工智能入门', description: 'AI 和机器学习的基础知识介绍', category: '人工智能', icon: '🤖' }
+                    ];
+                });
+                
+                const getCategoryName = (cat) => {
+                    const names = {
+                        frontend: '前端开发',
+                        backend: '后端开发',
+                        mobile: '移动开发',
+                        ai: '人工智能'
+                    };
+                    return names[cat] || cat;
+                };
+                
+                const getSortName = (sortType) => {
+                    const names = {
+                        relevance: '相关性',
+                        date: '时间',
+                        popularity: '热度'
+                    };
+                    return names[sortType] || sortType;
+                };
+
+                return {
+                    query,
+                    category,
+                    sort,
+                    limit,
+                    hasQuery,
+                    mockResults,
+                    getCategoryName,
+                    getSortName
+                };
+            }
+        };
+
+        const NotFound = {
+            template: `
+                <div class="error-page">
+                    <div class="error-code">404</div>
+                    <h3>页面不存在</h3>
+                    <p>抱歉，您访问的页面 "{{ $route.path }}" 不存在。</p>
+                    <div style="margin-top: 2rem;">
+                        <router-link to="/" class="btn btn-primary">返回首页</router-link>
+                        <button class="btn btn-secondary" @click="$router.go(-1)" style="margin-left: 1rem;">返回上一页</button>
+                    </div>
+                </div>
+            `
+        };
+
+        // 路由配置
+        const routes = [
+            { path: '/', component: Home },
+            { path: '/users', component: UserList },
+            { path: '/users/:id', component: UserDetail },
+            { path: '/products', component: ProductList },
+            { path: '/products/:category', component: ProductCategory },
+            { path: '/products/:category/:id', component: ProductDetail },
+            { path: '/search', component: Search },
+            { path: '/:pathMatch(.*)*', component: NotFound }
+        ];
+
+        const router = createRouter({
+            history: createWebHashHistory(),
+            routes
+        });
+
+        // 创建应用
+        const app = createApp({
+            setup() {
+                const router = useRouter();
+                const userId = ref(1);
+                const productId = ref(101);
+                const selectedCategory = ref('electronics');
+                const searchQuery = ref('');
+                const searchCategory = ref('');
+                const searchSort = ref('relevance');
+                const searchLimit = ref('20');
+
+                const goToUser = () => {
+                    if (userId.value) {
+                        router.push(`/users/${userId.value}`);
+                    }
+                };
+
+                const goToProduct = () => {
+                    if (selectedCategory.value && productId.value) {
+                        router.push(`/products/${selectedCategory.value}/${productId.value}`);
+                    }
+                };
+
+                const performSearch = () => {
+                    const query = {};
+                    if (searchQuery.value) query.q = searchQuery.value;
+                    if (searchCategory.value) query.category = searchCategory.value;
+                    if (searchSort.value && searchSort.value !== 'relevance') query.sort = searchSort.value;
+                    if (searchLimit.value && searchLimit.value !== '20') query.limit = searchLimit.value;
+                    
+                    router.push({ path: '/search', query });
+                };
+
+                return {
+                    userId,
+                    productId,
+                    selectedCategory,
+                    searchQuery,
+                    searchCategory,
+                    searchSort,
+                    searchLimit,
+                    goToUser,
+                    goToProduct,
+                    performSearch
+                };
+            }
+        });
+
+        app.use(router);
+        app.mount('#app');
+    </script>
+</body>
+</html>

@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue Router 路由守卫练习</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/vue-router@4/dist/vue-router.global.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        #app {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.router-link-active {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #667eea;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .permission-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin: 0.25rem;
+        }
+
+        .permission-admin {
+            background: #ffeaa7;
+            color: #856404;
+        }
+
+        .permission-user {
+            background: #a8e6cf;
+            color: #155724;
+        }
+
+        .permission-guest {
+            background: #ddd6fe;
+            color: #553c9a;
+        }
+
+        .route-info {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .breadcrumb {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .guard-log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+        }
+
+        .guard-log-entry {
+            padding: 0.25rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .guard-log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .guard-log-time {
+            color: #6c757d;
+            font-size: 0.8rem;
+        }
+
+        .guard-log-type {
+            font-weight: bold;
+            margin: 0 0.5rem;
+        }
+
+        .guard-log-global {
+            color: #007bff;
+        }
+
+        .guard-log-route {
+            color: #28a745;
+        }
+
+        .guard-log-component {
+            color: #ffc107;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        @media (max-width: 768px) {
+            .nav {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <header class="header">
+            <nav class="nav">
+                <div class="logo">🛡️ 路由守卫系统</div>
+                <ul class="nav-links">
+                    <li><router-link to="/">首页</router-link></li>
+                    <li><router-link to="/public">公开页面</router-link></li>
+                    <li><router-link to="/protected">受保护页面</router-link></li>
+                    <li><router-link to="/admin">管理后台</router-link></li>
+                    <li><router-link to="/user/profile">用户中心</router-link></li>
+                    <li><router-link to="/analytics">数据分析</router-link></li>
+                </ul>
+                <div class="user-info">
+                    <div class="user-avatar">{{ currentUser.name.charAt(0) }}</div>
+                    <span>{{ currentUser.name }}</span>
+                    <span class="permission-badge" :class="`permission-${currentUser.role}`">
+                        {{ getRoleText(currentUser.role) }}
+                    </span>
+                    <button @click="toggleRole" class="btn btn-secondary">切换角色</button>
+                    <button @click="logout" class="btn btn-danger">退出</button>
+                </div>
+            </nav>
+        </header>
+
+        <main class="main-content">
+            <!-- 路由守卫日志 -->
+            <div class="card">
+                <h3>🔍 路由守卫执行日志</h3>
+                <div class="guard-log">
+                    <div v-for="log in guardLogs" :key="log.id" class="guard-log-entry">
+                        <span class="guard-log-time">{{ log.time }}</span>
+                        <span class="guard-log-type" :class="`guard-log-${log.type}`">
+                            {{ log.type.toUpperCase() }}
+                        </span>
+                        <span>{{ log.message }}</span>
+                    </div>
+                </div>
+                <button @click="clearLogs" class="btn btn-secondary" style="margin-top: 1rem;">清空日志</button>
+            </div>
+
+            <!-- 统计信息 -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">{{ stats.totalNavigations }}</div>
+                    <div class="stat-label">总导航次数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ stats.blockedNavigations }}</div>
+                    <div class="stat-label">被阻止的导航</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ stats.successfulNavigations }}</div>
+                    <div class="stat-label">成功的导航</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ stats.redirectedNavigations }}</div>
+                    <div class="stat-label">重定向的导航</div>
+                </div>
+            </div>
+
+            <!-- 路由视图 -->
+            <router-view></router-view>
+        </main>
+    </div>
+
+    <script>
+        const { createApp, ref, reactive, computed, onMounted, watch } = Vue;
+        const { createRouter, createWebHashHistory, useRoute, useRouter, onBeforeRouteEnter, onBeforeRouteUpdate, onBeforeRouteLeave } = VueRouter;
+
+        // 全局状态管理
+        const globalState = reactive({
+            currentUser: {
+                id: 1,
+                name: '张三',
+                role: 'user', // guest, user, admin
+                isAuthenticated: true
+            },
+            guardLogs: [],
+            stats: {
+                totalNavigations: 0,
+                blockedNavigations: 0,
+                successfulNavigations: 0,
+                redirectedNavigations: 0
+            },
+            logId: 1
+        });
+
+        // 工具函数
+        const addGuardLog = (type, message) => {
+            const now = new Date();
+            const time = now.toLocaleTimeString();
+            globalState.guardLogs.unshift({
+                id: globalState.logId++,
+                type,
+                message,
+                time
+            });
+            // 只保留最近50条日志
+            if (globalState.guardLogs.length > 50) {
+                globalState.guardLogs.pop();
+            }
+        };
+
+        const hasPermission = (requiredRole) => {
+            const roleHierarchy = { guest: 0, user: 1, admin: 2 };
+            const userLevel = roleHierarchy[globalState.currentUser.role] || 0;
+            const requiredLevel = roleHierarchy[requiredRole] || 0;
+            return userLevel >= requiredLevel;
+        };
+
+        const simulateAsyncCheck = (delay = 1000) => {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    resolve(Math.random() > 0.1); // 90% 成功率
+                }, delay);
+            });
+        };
+
+        // 组件定义
+        const Home = {
+            template: `
+                <div class="card">
+                    <h2>🏠 首页</h2>
+                    <p>欢迎来到Vue Router路由守卫练习系统！</p>
+                    
+                    <div class="route-info">
+                        <h4>📋 练习内容</h4>
+                        <ul>
+                            <li><strong>全局前置守卫：</strong>在每次路由跳转前执行权限检查</li>
+                            <li><strong>全局后置钩子：</strong>在路由跳转完成后记录访问日志</li>
+                            <li><strong>路由独享守卫：</strong>为特定路由配置专门的守卫逻辑</li>
+                            <li><strong>组件内守卫：</strong>在组件内部处理路由变化</li>
+                            <li><strong>异步路由守卫：</strong>处理需要异步验证的场景</li>
+                            <li><strong>权限控制：</strong>基于用户角色的访问控制</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="grid">
+                        <div class="card">
+                            <h4>🔓 公开页面</h4>
+                            <p>所有用户都可以访问的页面</p>
+                            <router-link to="/public" class="btn btn-primary">访问公开页面</router-link>
+                        </div>
+                        <div class="card">
+                            <h4>🔒 受保护页面</h4>
+                            <p>需要登录才能访问的页面</p>
+                            <router-link to="/protected" class="btn btn-primary">访问受保护页面</router-link>
+                        </div>
+                        <div class="card">
+                            <h4>👑 管理后台</h4>
+                            <p>只有管理员才能访问的页面</p>
+                            <router-link to="/admin" class="btn btn-primary">访问管理后台</router-link>
+                        </div>
+                    </div>
+                </div>
+            `
+        };
+
+        const PublicPage = {
+            template: `
+                <div class="card">
+                    <div class="breadcrumb">
+                        <router-link to="/">首页</router-link> / 公开页面
+                    </div>
+                    
+                    <h2>🔓 公开页面</h2>
+                    <div class="alert alert-info">
+                        <strong>ℹ️ 提示：</strong>这是一个公开页面，所有用户都可以访问，无需特殊权限。
+                    </div>
+                    
+                    <p>这个页面演示了无需权限验证的路由。任何用户，无论是否登录，都可以访问这个页面。</p>
+                    
+                    <div class="route-info">
+                        <h4>🛡️ 路由守卫配置</h4>
+                        <pre style="background: #f8f9fa; padding: 1rem; border-radius: 8px; overflow-x: auto;">{
+  path: '/public',
+  component: PublicPage,
+  meta: { 
+    requiresAuth: false,
+    title: '公开页面'
+  }
+}</pre>
+                    </div>
+                    
+                    <div class="grid">
+                        <div class="card">
+                            <h4>📊 访问统计</h4>
+                            <p>今日访问量：<strong>1,234</strong></p>
+                            <p>总访问量：<strong>45,678</strong></p>
+                        </div>
+                        <div class="card">
+                            <h4>📢 公告</h4>
+                            <p>欢迎使用我们的系统！如有问题请联系客服。</p>
+                        </div>
+                    </div>
+                </div>
+            `,
+            beforeRouteEnter(to, from, next) {
+                addGuardLog('component', `PublicPage - beforeRouteEnter: 从 ${from.path} 进入 ${to.path}`);
+                next();
+            },
+            beforeRouteLeave(to, from, next) {
+                addGuardLog('component', `PublicPage - beforeRouteLeave: 从 ${from.path} 离开到 ${to.path}`);
+                next();
+            }
+        };
+
+        const ProtectedPage = {
+            template: `
+                <div class="card">
+                    <div class="breadcrumb">
+                        <router-link to="/">首页</router-link> / 受保护页面
+                    </div>
+                    
+                    <h2>🔒 受保护页面</h2>
+                    <div class="alert alert-success">
+                        <strong>✅ 成功：</strong>您已通过身份验证，可以访问此受保护的页面。
+                    </div>
+                    
+                    <p>这个页面需要用户登录后才能访问。如果用户未登录，会被重定向到登录页面。</p>
+                    
+                    <div class="route-info">
+                        <h4>🛡️ 路由守卫配置</h4>
+                        <pre style="background: #f8f9fa; padding: 1rem; border-radius: 8px; overflow-x: auto;">{
+  path: '/protected',
+  component: ProtectedPage,
+  meta: { 
+    requiresAuth: true,
+    title: '受保护页面'
+  }
+}</pre>
+                    </div>
+                    
+                    <div class="grid">
+                        <div class="card">
+                            <h4>👤 用户信息</h4>
+                            <p>用户名：<strong>{{ currentUser.name }}</strong></p>
+                            <p>角色：<strong>{{ getRoleText(currentUser.role) }}</strong></p>
+                            <p>登录状态：<strong>{{ currentUser.isAuthenticated ? '已登录' : '未登录' }}</strong></p>
+                        </div>
+                        <div class="card">
+                            <h4>🔐 安全信息</h4>
+                            <p>最后登录：<strong>2024-01-15 10:30:00</strong></p>
+                            <p>登录IP：<strong>192.168.1.100</strong></p>
+                            <p>会话有效期：<strong>2小时</strong></p>
+                        </div>
+                    </div>
+                </div>
+            `,
+            setup() {
+                return {
+                    currentUser: globalState.currentUser,
+                    getRoleText: (role) => {
+                        const roleMap = { guest: '访客', user: '用户', admin: '管理员' };
+                        return roleMap[role] || '未知';
+                    }
+                };
+            },
+            beforeRouteEnter(to, from, next) {
+                addGuardLog('component', `ProtectedPage - beforeRouteEnter: 检查用户权限`);
+                if (globalState.currentUser.isAuthenticated) {
+                    next();
+                } else {
+                    addGuardLog('component', `ProtectedPage - beforeRouteEnter: 用户未登录，重定向到登录页`);
+                    next('/login');
+                }
+            },
+            beforeRouteLeave(to, from, next) {
+                addGuardLog('component', `ProtectedPage - beforeRouteLeave: 离开受保护页面`);
+                next();
+            }
+        };
+
+        const AdminPage = {
+            template: `
+                <div class="card">
+                    <div class="breadcrumb">
+                        <router-link to="/">首页</router-link> / 管理后台
+                    </div>
+                    
+                    <h2>👑 管理后台</h2>
+                    <div class="alert alert-warning">
+                        <strong>⚠️ 警告：</strong>这是管理员专用页面，包含敏感操作，请谨慎使用。
+                    </div>
+                    
+                    <p>这个页面只有管理员角色的用户才能访问。普通用户会被拒绝访问。</p>
+                    
+                    <div class="route-info">
+                        <h4>🛡️ 路由守卫配置</h4>
+                        <pre style="background: #f8f9fa; padding: 1rem; border-radius: 8px; overflow-x: auto;">{
+  path: '/admin',
+  component: AdminPage,
+  beforeEnter: (to, from, next) => {
+    if (hasPermission('admin')) {
+      next();
+    } else {
+      next('/unauthorized');
+    }
+  },
+  meta: { 
+    requiresAuth: true,
+    requiredRole: 'admin',
+    title: '管理后台'
+  }
+}</pre>
+                    </div>
+                    
+                    <div class="grid">
+                        <div class="card">
+                            <h4>👥 用户管理</h4>
+                            <p>总用户数：<strong>1,234</strong></p>
+                            <p>活跃用户：<strong>856</strong></p>
+                            <button class="btn btn-primary">管理用户</button>
+                        </div>
+                        <div class="card">
+                            <h4>📊 系统统计</h4>
+                            <p>今日访问：<strong>5,678</strong></p>
+                            <p>系统负载：<strong>45%</strong></p>
+                            <button class="btn btn-primary">查看详情</button>
+                        </div>
+                        <div class="card">
+                            <h4>⚙️ 系统设置</h4>
+                            <p>系统版本：<strong>v2.1.0</strong></p>
+                            <p>数据库状态：<strong>正常</strong></p>
+                            <button class="btn btn-primary">系统配置</button>
+                        </div>
+                        <div class="card">
+                            <h4>🔒 安全中心</h4>
+                            <p>安全等级：<strong>高</strong></p>
+                            <p>威胁检测：<strong>0个</strong></p>
+                            <button class="btn btn-primary">安全设置</button>
+                        </div>
+                    </div>
+                </div>
+            `,
+            beforeRouteEnter(to, from, next) {
+                addGuardLog('component', `AdminPage - beforeRouteEnter: 验证管理员权限`);
+                next();
+            },
+            beforeRouteLeave(to, from, next) {
+                addGuardLog('component', `AdminPage - beforeRouteLeave: 离开管理后台`);
+                // 模拟确认对话框
+                const confirmed = confirm('您确定要离开管理后台吗？未保存的更改将丢失。');
+                if (confirmed) {
+                    next();
+                } else {
+                    next(false);
+                }
+            }
+        };
+
+        const UserProfile = {
+            template: `
+                <div class="card">
+                    <div class="breadcrumb">
+                        <router-link to="/">首页</router-link> / 用户中心 / 个人资料
+                    </div>
+                    
+                    <h2>👤 个人资料</h2>
+                    <div class="alert alert-info">
+                        <strong>ℹ️ 提示：</strong>这里可以查看和编辑您的个人信息。
+                    </div>
+                    
+                    <div class="grid">
+                        <div class="card">
+                            <h4>📝 基本信息</h4>
+                            <div class="form-group">
+                                <label>用户名</label>
+                                <input type="text" :value="currentUser.name" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>角色</label>
+                                <input type="text" :value="getRoleText(currentUser.role)" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>邮箱</label>
+                                <input type="email" value="zhangsan@example.com">
+                            </div>
+                            <div class="form-group">
+                                <label>电话</label>
+                                <input type="tel" value="138-0000-0000">
+                            </div>
+                            <button class="btn btn-primary">保存更改</button>
+                        </div>
+                        
+                        <div class="card">
+                            <h4>🔐 安全设置</h4>
+                            <div class="form-group">
+                                <label>当前密码</label>
+                                <input type="password" placeholder="请输入当前密码">
+                            </div>
+                            <div class="form-group">
+                                <label>新密码</label>
+                                <input type="password" placeholder="请输入新密码">
+                            </div>
+                            <div class="form-group">
+                                <label>确认新密码</label>
+                                <input type="password" placeholder="请再次输入新密码">
+                            </div>
+                            <button class="btn btn-primary">修改密码</button>
+                        </div>
+                    </div>
+                </div>
+            `,
+            setup() {
+                const route = useRoute();
+                
+                onBeforeRouteUpdate((to, from) => {
+                    addGuardLog('component', `UserProfile - beforeRouteUpdate: 路由参数变化 ${from.params.id} -> ${to.params.id}`);
+                });
+                
+                return {
+                    currentUser: globalState.currentUser,
+                    getRoleText: (role) => {
+                        const roleMap = { guest: '访客', user: '用户', admin: '管理员' };
+                        return roleMap[role] || '未知';
+                    }
+                };
+            }
+        };
+
+        const AnalyticsPage = {
+            template: `
+                <div class="card">
+                    <div class="breadcrumb">
+                        <router-link to="/">首页</router-link> / 数据分析
+                    </div>
+                    
+                    <h2>📊 数据分析</h2>
+                    <div v-if="loading" class="loading">
+                        <div class="spinner"></div>
+                        <span style="margin-left: 1rem;">正在加载数据...</span>
+                    </div>
+                    
+                    <div v-else>
+                        <div class="alert alert-success">
+                            <strong>✅ 成功：</strong>数据加载完成，异步路由守卫验证通过。
+                        </div>
+                        
+                        <div class="route-info">
+                            <h4>🛡️ 异步路由守卫</h4>
+                            <p>这个页面演示了异步路由守卫的使用。在进入页面前，会异步验证用户权限和数据可用性。</p>
+                        </div>
+                        
+                        <div class="grid">
+                            <div class="card">
+                                <h4>📈 访问趋势</h4>
+                                <p>今日访问：<strong>2,345</strong> (+12%)</p>
+                                <p>昨日访问：<strong>2,089</strong></p>
+                                <p>本周访问：<strong>15,678</strong></p>
+                            </div>
+                            <div class="card">
+                                <h4>👥 用户分析</h4>
+                                <p>新用户：<strong>123</strong></p>
+                                <p>活跃用户：<strong>1,456</strong></p>
+                                <p>留存率：<strong>78%</strong></p>
+                            </div>
+                            <div class="card">
+                                <h4>🌍 地域分布</h4>
+                                <p>北京：<strong>35%</strong></p>
+                                <p>上海：<strong>28%</strong></p>
+                                <p>广州：<strong>15%</strong></p>
+                                <p>其他：<strong>22%</strong></p>
+                            </div>
+                            <div class="card">
+                                <h4>📱 设备分析</h4>
+                                <p>桌面端：<strong>65%</strong></p>
+                                <p>移动端：<strong>30%</strong></p>
+                                <p>平板：<strong>5%</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+            setup() {
+                const loading = ref(true);
+                
+                onMounted(() => {
+                    // 模拟数据加载
+                    setTimeout(() => {
+                        loading.value = false;
+                    }, 2000);
+                });
+                
+                return { loading };
+            },
+            async beforeRouteEnter(to, from, next) {
+                addGuardLog('component', `AnalyticsPage - beforeRouteEnter: 开始异步验证`);
+                
+                try {
+                    // 模拟异步权限检查
+                    const hasAccess = await simulateAsyncCheck(1500);
+                    
+                    if (hasAccess) {
+                        addGuardLog('component', `AnalyticsPage - beforeRouteEnter: 异步验证成功`);
+                        next();
+                    } else {
+                        addGuardLog('component', `AnalyticsPage - beforeRouteEnter: 异步验证失败，拒绝访问`);
+                        next('/unauthorized');
+                    }
+                } catch (error) {
+                    addGuardLog('component', `AnalyticsPage - beforeRouteEnter: 异步验证出错 - ${error.message}`);
+                    next('/error');
+                }
+            }
+        };
+
+        const UnauthorizedPage = {
+            template: `
+                <div class="card">
+                    <div class="alert alert-danger">
+                        <h2>🚫 访问被拒绝</h2>
+                        <p><strong>抱歉，您没有权限访问此页面。</strong></p>
+                    </div>
+                    
+                    <div class="route-info">
+                        <h4>可能的原因：</h4>
+                        <ul>
+                            <li>您的账户权限不足</li>
+                            <li>需要更高级别的用户角色</li>
+                            <li>页面需要特殊授权</li>
+                            <li>会话已过期，需要重新登录</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="margin-top: 2rem;">
+                        <router-link to="/" class="btn btn-primary">返回首页</router-link>
+                        <button @click="requestAccess" class="btn btn-secondary" style="margin-left: 1rem;">申请权限</button>
+                    </div>
+                </div>
+            `,
+            setup() {
+                const requestAccess = () => {
+                    alert('权限申请已提交，请等待管理员审核。');
+                };
+                
+                return { requestAccess };
+            }
+        };
+
+        const LoginPage = {
+            template: `
+                <div class="card">
+                    <h2>🔐 用户登录</h2>
+                    <div class="alert alert-info">
+                        <strong>ℹ️ 提示：</strong>请登录以访问受保护的页面。
+                    </div>
+                    
+                    <div style="max-width: 400px; margin: 0 auto;">
+                        <div class="form-group">
+                            <label>用户名</label>
+                            <input type="text" v-model="username" placeholder="请输入用户名">
+                        </div>
+                        <div class="form-group">
+                            <label>密码</label>
+                            <input type="password" v-model="password" placeholder="请输入密码">
+                        </div>
+                        <button @click="login" class="btn btn-primary" style="width: 100%;">登录</button>
+                    </div>
+                    
+                    <div class="route-info" style="margin-top: 2rem;">
+                        <h4>🧪 测试账户</h4>
+                        <p>用户名：user / 密码：123456 （普通用户）</p>
+                        <p>用户名：admin / 密码：123456 （管理员）</p>
+                    </div>
+                </div>
+            `,
+            setup() {
+                const router = useRouter();
+                const route = useRoute();
+                const username = ref('');
+                const password = ref('');
+                
+                const login = () => {
+                    if (username.value && password.value) {
+                        // 模拟登录逻辑
+                        globalState.currentUser.isAuthenticated = true;
+                        globalState.currentUser.name = username.value;
+                        globalState.currentUser.role = username.value === 'admin' ? 'admin' : 'user';
+                        
+                        addGuardLog('global', `用户 ${username.value} 登录成功`);
+                        
+                        // 重定向到原来要访问的页面
+                        const redirect = route.query.redirect || '/';
+                        router.push(redirect);
+                    } else {
+                        alert('请输入用户名和密码');
+                    }
+                };
+                
+                return {
+                    username,
+                    password,
+                    login
+                };
+            }
+        };
+
+        // 路由配置
+        const routes = [
+            { 
+                path: '/', 
+                component: Home,
+                meta: { title: '首页' }
+            },
+            { 
+                path: '/public', 
+                component: PublicPage,
+                meta: { title: '公开页面' }
+            },
+            { 
+                path: '/protected', 
+                component: ProtectedPage,
+                meta: { requiresAuth: true, title: '受保护页面' }
+            },
+            {
+                path: '/admin',
+                component: AdminPage,
+                beforeEnter: (to, from, next) => {
+                    addGuardLog('route', `AdminPage - beforeEnter: 检查管理员权限`);
+                    globalState.stats.totalNavigations++;
+                    
+                    if (!globalState.currentUser.isAuthenticated) {
+                        addGuardLog('route', `AdminPage - beforeEnter: 用户未登录，重定向到登录页`);
+                        globalState.stats.redirectedNavigations++;
+                        next(`/login?redirect=${to.fullPath}`);
+                    } else if (!hasPermission('admin')) {
+                        addGuardLog('route', `AdminPage - beforeEnter: 权限不足，拒绝访问`);
+                        globalState.stats.blockedNavigations++;
+                        next('/unauthorized');
+                    } else {
+                        addGuardLog('route', `AdminPage - beforeEnter: 权限验证通过`);
+                        globalState.stats.successfulNavigations++;
+                        next();
+                    }
+                },
+                meta: { requiresAuth: true, requiredRole: 'admin', title: '管理后台' }
+            },
+            { 
+                path: '/user/profile', 
+                component: UserProfile,
+                meta: { requiresAuth: true, title: '个人资料' }
+            },
+            { 
+                path: '/analytics', 
+                component: AnalyticsPage,
+                meta: { requiresAuth: true, title: '数据分析' }
+            },
+            { 
+                path: '/login', 
+                component: LoginPage,
+                meta: { title: '登录' }
+            },
+            { 
+                path: '/unauthorized', 
+                component: UnauthorizedPage,
+                meta: { title: '访问被拒绝' }
+            }
+        ];
+
+        // 创建路由器
+        const router = createRouter({
+            history: createWebHashHistory(),
+            routes
+        });
+
+        // 全局前置守卫
+        router.beforeEach((to, from, next) => {
+            addGuardLog('global', `beforeEach: 从 ${from.path} 导航到 ${to.path}`);
+            globalState.stats.totalNavigations++;
+            
+            // 设置页面标题
+            if (to.meta.title) {
+                document.title = `${to.meta.title} - 路由守卫系统`;
+            }
+            
+            // 检查是否需要认证
+            if (to.meta.requiresAuth) {
+                if (!globalState.currentUser.isAuthenticated) {
+                    addGuardLog('global', `beforeEach: 需要登录，重定向到登录页`);
+                    globalState.stats.redirectedNavigations++;
+                    next(`/login?redirect=${to.fullPath}`);
+                    return;
+                }
+                
+                // 检查角色权限
+                if (to.meta.requiredRole && !hasPermission(to.meta.requiredRole)) {
+                    addGuardLog('global', `beforeEach: 权限不足，拒绝访问`);
+                    globalState.stats.blockedNavigations++;
+                    next('/unauthorized');
+                    return;
+                }
+            }
+            
+            addGuardLog('global', `beforeEach: 导航验证通过`);
+            globalState.stats.successfulNavigations++;
+            next();
+        });
+
+        // 全局解析守卫
+        router.beforeResolve((to, from, next) => {
+            addGuardLog('global', `beforeResolve: 解析 ${to.path} 路由`);
+            next();
+        });
+
+        // 全局后置钩子
+        router.afterEach((to, from) => {
+            addGuardLog('global', `afterEach: 完成从 ${from.path} 到 ${to.path} 的导航`);
+            
+            // 记录访问日志
+            console.log(`页面访问记录: ${to.path} - ${new Date().toISOString()}`);
+        });
+
+        // 创建应用
+        const app = createApp({
+            setup() {
+                const currentUser = globalState.currentUser;
+                const guardLogs = globalState.guardLogs;
+                const stats = globalState.stats;
+                
+                const getRoleText = (role) => {
+                    const roleMap = { guest: '访客', user: '用户', admin: '管理员' };
+                    return roleMap[role] || '未知';
+                };
+                
+                const toggleRole = () => {
+                    const roles = ['guest', 'user', 'admin'];
+                    const currentIndex = roles.indexOf(currentUser.role);
+                    const nextIndex = (currentIndex + 1) % roles.length;
+                    currentUser.role = roles[nextIndex];
+                    
+                    addGuardLog('global', `角色切换为: ${getRoleText(currentUser.role)}`);
+                };
+                
+                const logout = () => {
+                    currentUser.isAuthenticated = false;
+                    currentUser.role = 'guest';
+                    currentUser.name = '游客';
+                    
+                    addGuardLog('global', '用户已退出登录');
+                    
+                    // 如果当前在受保护页面，重定向到首页
+                    const route = router.currentRoute.value;
+                    if (route.meta.requiresAuth) {
+                        router.push('/');
+                    }
+                };
+                
+                const clearLogs = () => {
+                    globalState.guardLogs.splice(0);
+                    addGuardLog('global', '日志已清空');
+                };
+                
+                return {
+                    currentUser,
+                    guardLogs,
+                    stats,
+                    getRoleText,
+                    toggleRole,
+                    logout,
+                    clearLogs
+                };
+            }
+        });
+
+        app.use(router);
+        app.mount('#app');
+    </script>
+</body>
+</html>
